@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { createUser } from '@/lib/user-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,10 +28,20 @@ export default function AdminUsuarios() {
   const [setores, setSetores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   const [editUser, setEditUser] = useState<any>(null);
+  const [newUser, setNewUser] = useState<any>({
+    name: '',
+    username: '',
+    email: '',
+    password: '',
+    role: 'usuario',
+    setor_id: '',
+    ativo: true,
+  });
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -49,10 +60,8 @@ export default function AdminUsuarios() {
     setSaving(true);
     try {
       if (editUser.isNew) {
-        // Create auth user first, then profile
-        // Note: Creating users requires admin API; for now, we'll create via Supabase Auth
-        // This is a limitation - in production, use an edge function
-        toast({ title: 'Para criar usuários, use a função de registro ou uma edge function', variant: 'destructive' });
+        // This shouldn't happen now, but keep for safety
+        toast({ title: 'Use o botão "Novo Usuário" para criar novos usuários', variant: 'destructive' });
       } else {
         const { error } = await supabase.from('users').update({
           name: editUser.name,
@@ -74,6 +83,42 @@ export default function AdminUsuarios() {
     }
   };
 
+  const handleCreateNewUser = async () => {
+    if (!newUser.name || !newUser.username || !newUser.email || !newUser.password) {
+      toast({ title: 'Erro', description: 'Preecha todos os campos obrigatórios', variant: 'destructive' });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await createUser({
+        name: newUser.name,
+        username: newUser.username,
+        email: newUser.email,
+        password: newUser.password,
+        role: newUser.role,
+        setor_id: newUser.setor_id || undefined,
+        ativo: newUser.ativo,
+      });
+      toast({ title: 'Sucesso!', description: 'Usuário criado com sucesso' });
+      setIsNewDialogOpen(false);
+      setNewUser({
+        name: '',
+        username: '',
+        email: '',
+        password: '',
+        role: 'usuario',
+        setor_id: '',
+        ativo: true,
+      });
+      await fetchUsers();
+    } catch (err: any) {
+      toast({ title: 'Erro ao criar usuário', description: err.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const roleLabels: Record<string, string> = {
     admin: 'Admin',
     suporte: 'Suporte',
@@ -85,6 +130,104 @@ export default function AdminUsuarios() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Usuários</h1>
+        <Dialog open={isNewDialogOpen} onOpenChange={setIsNewDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Usuário
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Criar Novo Usuário</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label>Nome *</Label>
+                <Input 
+                  placeholder="Nome completo"
+                  value={newUser.name} 
+                  onChange={e => setNewUser({ ...newUser, name: e.target.value })} 
+                />
+              </div>
+              <div>
+                <Label>Username *</Label>
+                <Input 
+                  placeholder="username"
+                  value={newUser.username} 
+                  onChange={e => setNewUser({ ...newUser, username: e.target.value })} 
+                />
+              </div>
+              <div>
+                <Label>Email *</Label>
+                <Input 
+                  type="email"
+                  placeholder="email@example.com"
+                  value={newUser.email} 
+                  onChange={e => setNewUser({ ...newUser, email: e.target.value })} 
+                />
+              </div>
+              <div>
+                <Label>Senha *</Label>
+                <Input 
+                  type="password"
+                  placeholder="Senha forte"
+                  value={newUser.password} 
+                  onChange={e => setNewUser({ ...newUser, password: e.target.value })} 
+                />
+              </div>
+              <div>
+                <Label>Role</Label>
+                <Select value={newUser.role} onValueChange={v => setNewUser({ ...newUser, role: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="gestor">Gestor</SelectItem>
+                    <SelectItem value="suporte">Suporte</SelectItem>
+                    <SelectItem value="usuario">Usuário</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Setor</Label>
+                <Select value={newUser.setor_id} onValueChange={v => setNewUser({ ...newUser, setor_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um setor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {setores.map(s => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch 
+                  checked={newUser.ativo} 
+                  onCheckedChange={v => setNewUser({ ...newUser, ativo: v })} 
+                />
+                <Label>Ativo</Label>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsNewDialogOpen(false)}
+                  disabled={saving}
+                >
+                  Cancelar
+                </Button>
+                <Button onClick={handleCreateNewUser} disabled={saving}>
+                  {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Criar Usuário
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="rounded-lg border bg-card">
@@ -102,33 +245,78 @@ export default function AdminUsuarios() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                </TableCell>
+              </TableRow>
             ) : users.map(u => (
               <TableRow key={u.id}>
                 <TableCell className="font-medium">{u.name}</TableCell>
                 <TableCell>{u.username}</TableCell>
                 <TableCell>{u.email}</TableCell>
-                <TableCell><Badge variant="outline">{roleLabels[u.role] || u.role}</Badge></TableCell>
-                <TableCell>{u.setor?.nome}</TableCell>
-                <TableCell><Badge variant={u.ativo ? 'default' : 'secondary'}>{u.ativo ? 'Ativo' : 'Inativo'}</Badge></TableCell>
                 <TableCell>
-                  <Dialog open={isOpen && editUser?.id === u.id} onOpenChange={(open) => { setIsOpen(open); if (!open) setEditUser(null); }}>
+                  <Badge variant="outline">{roleLabels[u.role] || u.role}</Badge>
+                </TableCell>
+                <TableCell>{u.setor?.nome}</TableCell>
+                <TableCell>
+                  <Badge variant={u.ativo ? 'default' : 'secondary'}>
+                    {u.ativo ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Dialog 
+                    open={isOpen && editUser?.id === u.id} 
+                    onOpenChange={(open) => { 
+                      setIsOpen(open); 
+                      if (!open) setEditUser(null); 
+                    }}
+                  >
                     <DialogTrigger asChild>
-                      <Button size="icon" variant="ghost" onClick={() => { setEditUser(u); setIsOpen(true); }}>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        onClick={() => { 
+                          setEditUser(u); 
+                          setIsOpen(true); 
+                        }}
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
-                      <DialogHeader><DialogTitle>Editar Usuário</DialogTitle></DialogHeader>
+                      <DialogHeader>
+                        <DialogTitle>Editar Usuário</DialogTitle>
+                      </DialogHeader>
                       {editUser && (
                         <div className="space-y-4 py-4">
-                          <div><Label>Nome</Label><Input value={editUser.name} onChange={e => setEditUser({ ...editUser, name: e.target.value })} /></div>
-                          <div><Label>Username</Label><Input value={editUser.username} onChange={e => setEditUser({ ...editUser, username: e.target.value })} /></div>
-                          <div><Label>Email</Label><Input value={editUser.email} onChange={e => setEditUser({ ...editUser, email: e.target.value })} /></div>
+                          <div>
+                            <Label>Nome</Label>
+                            <Input 
+                              value={editUser.name} 
+                              onChange={e => setEditUser({ ...editUser, name: e.target.value })} 
+                            />
+                          </div>
+                          <div>
+                            <Label>Username</Label>
+                            <Input 
+                              value={editUser.username} 
+                              onChange={e => setEditUser({ ...editUser, username: e.target.value })} 
+                            />
+                          </div>
+                          <div>
+                            <Label>Email</Label>
+                            <Input 
+                              value={editUser.email} 
+                              onChange={e => setEditUser({ ...editUser, email: e.target.value })} 
+                            />
+                          </div>
                           <div>
                             <Label>Role</Label>
                             <Select value={editUser.role} onValueChange={v => setEditUser({ ...editUser, role: v })}>
-                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="admin">Admin</SelectItem>
                                 <SelectItem value="suporte">Suporte</SelectItem>
@@ -140,18 +328,33 @@ export default function AdminUsuarios() {
                           <div>
                             <Label>Setor</Label>
                             <Select value={editUser.setor_id} onValueChange={v => setEditUser({ ...editUser, setor_id: v })}>
-                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Nenhum setor" />
+                              </SelectTrigger>
                               <SelectContent>
-                                {setores.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
+                                {setores.map(s => (
+                                  <SelectItem key={s.id} value={s.id}>
+                                    {s.nome}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Switch checked={editUser.ativo} onCheckedChange={v => setEditUser({ ...editUser, ativo: v })} />
+                            <Switch 
+                              checked={editUser.ativo} 
+                              onCheckedChange={v => setEditUser({ ...editUser, ativo: v })} 
+                            />
                             <Label>Ativo</Label>
                           </div>
                           <div className="flex justify-end gap-2">
-                            <Button variant="outline" onClick={() => setIsOpen(false)}>Cancelar</Button>
+                            <Button 
+                              variant="outline" 
+                              onClick={() => setIsOpen(false)}
+                              disabled={saving}
+                            >
+                              Cancelar
+                            </Button>
                             <Button onClick={handleSave} disabled={saving}>
                               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                               Salvar
