@@ -34,7 +34,7 @@ export function AdminCrudPage<T extends Record<string, any>>({
   const fetchItems = async () => {
     setLoading(true);
     const { data } = await supabase.from(tableName as any).select('*').order(orderBy);
-    setItems((data as T[]) || []);
+    setItems((data as unknown as T[]) || []);
     setLoading(false);
   };
 
