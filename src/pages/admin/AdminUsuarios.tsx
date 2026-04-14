@@ -123,6 +123,7 @@ export default function AdminUsuarios() {
             <DialogHeader><DialogTitle>Novo Usuário</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <div><Label>Nome</Label><Input value={newUserForm.name} onChange={e => setNewUserForm({ ...newUserForm, name: e.target.value })} /></div>
+              <div><Label>Usuário</Label><Input value={newUserForm.username} onChange={e => setNewUserForm({ ...newUserForm, username: e.target.value })} /></div>
               <div><Label>Email</Label><Input value={newUserForm.email} onChange={e => setNewUserForm({ ...newUserForm, email: e.target.value })} /></div>
               <div><Label>Senha</Label><Input type="password" value={newUserForm.password} onChange={e => setNewUserForm({ ...newUserForm, password: e.target.value })} /></div>
               <div className="flex gap-2 justify-end"><Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button><Button onClick={handleCreateUser} disabled={saving}>Criar</Button></div>
