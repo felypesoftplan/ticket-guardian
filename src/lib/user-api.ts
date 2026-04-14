@@ -39,3 +39,19 @@ export async function createUser(params: CreateUserParams): Promise<CreateUserRe
     throw new Error(err.message || 'Failed to create user');
   }
 }
+
+export async function deleteUser(userId: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const { data, error } = await supabase.functions.invoke('delete-user', {
+      body: { id: userId },
+    });
+
+    if (error) {
+      throw new Error(error.message || 'Failed to delete user');
+    }
+
+    return data as { success: boolean; message: string };
+  } catch (err: any) {
+    throw new Error(err.message || 'Failed to delete user');
+  }
+}
