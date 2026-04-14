@@ -47,8 +47,17 @@ export default function AdminUsuarios() {
       if (usersData) {
         const map: Record<string, Setor[]> = {};
         for (const user of usersData) {
-          const { data } = await supabase.from('user_setores').select('setor_id, setores(id, nome)').eq('user_id', user.id);
-          map[user.id] = data?.map((x: any) => x.setores) || [];
+          const { data, error } = await supabase
+            .from('user_setores')
+            .select('setor_id, setores(id, nome)')
+            .eq('user_id', user.id);
+
+          if (error) {
+            console.warn('Failed to load user_setores:', error.message);
+            map[user.id] = [];
+          } else {
+            map[user.id] = data?.map((x: any) => x.setores) || [];
+          }
         }
         setUserSetores(map);
       }

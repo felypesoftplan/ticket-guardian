@@ -1,66 +1,60 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
+const corsHeaders = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+const jsonResponse = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: corsHeaders,
+  });
+
 export async function onRequest(req: Request): Promise<Response> {
-  // Allow only DELETE requests
-  if (req.method !== 'DELETE') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
     });
   }
 
+  if (req.method !== 'POST') {
+    return jsonResponse({ error: 'Method not allowed' }, 405);
+  }
+
   try {
-    // Get user ID from request body
     const body = await req.json();
     const userId = body.id;
 
     if (!userId) {
-      return new Response(
-        JSON.stringify({ error: 'Missing user id' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: 'Missing user id' }, 400);
     }
 
-    // Initialize Supabase admin client
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!supabaseUrl || !supabaseServiceRoleKey) {
-      return new Response(
-        JSON.stringify({ error: 'Missing Supabase configuration' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: 'Missing Supabase configuration' }, 500);
     }
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-    // Delete from user_setores (will cascade)
     await supabaseAdmin
       .from('user_setores')
       .delete()
       .eq('user_id', userId);
 
-    // Delete auth user (this will cascade to users table)
     const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (error) {
-      return new Response(
-        JSON.stringify({ error: `Failed to delete user: ${error.message}` }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ error: `Failed to delete user: ${error.message}` }, 400);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Usuário deletado com sucesso',
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ success: true, message: 'Usuário deletado com sucesso' }, 200);
   } catch (error: any) {
-    return new Response(
-      JSON.stringify({ error: error.message || 'Unknown error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ error: error.message || 'Unknown error' }, 500);
   }
 }
