@@ -1,4 +1,4 @@
-import { LayoutDashboard, Ticket, Kanban, Settings, Users, Building2, AlertTriangle, ListChecks, Tag, Shield } from 'lucide-react';
+import { LayoutDashboard, Ticket, Kanban, Building2, AlertTriangle, ListChecks, Tag, Shield, Users } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import {
@@ -47,8 +47,15 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarContent>
         <div className="flex items-center gap-2 px-4 py-4">
-          <Ticket className="h-6 w-6 text-sidebar-primary" />
-          {!collapsed && <span className="font-bold text-lg text-sidebar-foreground">HelpDesk</span>}
+          <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
+            HD
+          </div>
+          {!collapsed && (
+            <div className="flex flex-col">
+              <span className="font-bold text-base text-sidebar-foreground leading-tight">Help DER</span>
+              <span className="text-xs text-sidebar-foreground/60 leading-tight">DER-PE</span>
+            </div>
+          )}
         </div>
 
         <SidebarGroup>

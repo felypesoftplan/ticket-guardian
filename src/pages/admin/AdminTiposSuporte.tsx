@@ -65,12 +65,23 @@ function TipoSuporteForm({ item, setItem }: { item: any; setItem: (v: any) => vo
 }
 
 export default function AdminTiposSuporte() {
-  // We need custom save logic for the junction table
-  // For now, use the basic CRUD and handle junctions separately
+  const handleAfterSave = async (item: any, isNew: boolean) => {
+    const setoresIds = item._selectedSetores || [];
+    if (!isNew) {
+      await (supabase.from('setor_tipo_suporte') as any).delete().eq('tipo_suporte_id', item.id);
+    }
+    if (setoresIds.length > 0) {
+      await supabase.from('setor_tipo_suporte').insert(
+        setoresIds.map((sid: string) => ({ setor_id: sid, tipo_suporte_id: item.id }))
+      );
+    }
+  };
+
   return (
     <AdminCrudPage
       tableName="tipo_suportes"
       title="Tipos de Suporte"
+      singularTitle="Tipo de Suporte"
       defaultItem={{ nome: '', ativo: true, prazo_dias_uteis: 5, classe_suporte_id: '' }}
       columns={[
         { key: 'nome', label: 'Nome' },
@@ -78,6 +89,7 @@ export default function AdminTiposSuporte() {
         { key: 'ativo', label: 'Status', render: (r) => <Badge variant={r.ativo ? 'default' : 'secondary'}>{r.ativo ? 'Ativo' : 'Inativo'}</Badge> },
       ]}
       formFields={(item, setItem) => <TipoSuporteForm item={item} setItem={setItem} />}
+      onAfterSave={handleAfterSave}
     />
   );
 }

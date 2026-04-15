@@ -5,24 +5,27 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
 interface CrudPageProps<T> {
   tableName: string;
   title: string;
+  singularTitle?: string;
   columns: { key: string; label: string; render?: (row: T) => ReactNode }[];
   formFields: (item: T | null, setItem: (item: T | null) => void) => ReactNode;
   defaultItem: T;
   orderBy?: string;
+  onAfterSave?: (item: T, isNew: boolean) => Promise<void>;
 }
 
 export function AdminCrudPage<T extends Record<string, any>>({
   tableName,
   title,
+  singularTitle,
   columns,
   formFields,
   defaultItem,
   orderBy = 'created_at',
+  onAfterSave,
 }: CrudPageProps<T>) {
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +33,8 @@ export function AdminCrudPage<T extends Record<string, any>>({
   const [isOpen, setIsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+
+  const singular = singularTitle || title;
 
   const fetchItems = async () => {
     setLoading(true);
@@ -44,14 +49,17 @@ export function AdminCrudPage<T extends Record<string, any>>({
     if (!editItem) return;
     setSaving(true);
     try {
-      const { id, created_at, updated_at, ...rest } = editItem;
+      const { id, created_at, updated_at, _selectedSetores, ...rest } = editItem;
+      const isNew = !id;
       if (id) {
         const { error } = await supabase.from(tableName as any).update(rest as any).eq('id', id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from(tableName as any).insert(rest as any);
+        const { data, error } = await supabase.from(tableName as any).insert(rest as any).select().single();
         if (error) throw error;
+        if (onAfterSave && data) await onAfterSave(data as unknown as T, true);
       }
+      if (!isNew && onAfterSave) await onAfterSave(editItem, false);
       toast({ title: 'Salvo com sucesso!' });
       setIsOpen(false);
       setEditItem(null);
@@ -85,9 +93,9 @@ export function AdminCrudPage<T extends Record<string, any>>({
               <Plus className="mr-2 h-4 w-4" /> Novo
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editItem?.id ? 'Editar' : 'Criar'} {title.slice(0, -1)}</DialogTitle>
+              <DialogTitle>{editItem?.id ? 'Editar' : 'Criar'} {singular}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               {editItem && formFields(editItem, setEditItem)}

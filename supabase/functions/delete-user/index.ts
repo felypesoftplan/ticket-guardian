@@ -4,21 +4,15 @@ const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 const jsonResponse = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: corsHeaders,
-  });
+  new Response(JSON.stringify(body), { status, headers: corsHeaders });
 
-export async function onRequest(req: Request): Promise<Response> {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   if (req.method !== 'POST') {
@@ -42,13 +36,12 @@ export async function onRequest(req: Request): Promise<Response> {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-    await supabaseAdmin
-      .from('user_setores')
-      .delete()
-      .eq('user_id', userId);
+    // Clean up related data
+    await supabaseAdmin.from('user_setores').delete().eq('user_id', userId);
+    await supabaseAdmin.from('user_roles').delete().eq('user_id', userId);
+    await supabaseAdmin.from('users').delete().eq('id', userId);
 
     const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
-
     if (error) {
       return jsonResponse({ error: `Failed to delete user: ${error.message}` }, 400);
     }
@@ -57,4 +50,4 @@ export async function onRequest(req: Request): Promise<Response> {
   } catch (error: any) {
     return jsonResponse({ error: error.message || 'Unknown error' }, 500);
   }
-}
+});

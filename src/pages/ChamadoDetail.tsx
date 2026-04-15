@@ -12,6 +12,7 @@ import { SlaBadge } from '@/components/SlaBadge';
 import { ArrowLeft, UserPlus, CheckCircle2, XCircle, Clock, MessageSquare, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { calculateSLA } from '@/lib/sla';
+import { notifyChamadoUpdate } from '@/lib/notifications';
 
 export default function ChamadoDetail() {
   const { id } = useParams<{ id: string }>();
@@ -105,7 +106,7 @@ export default function ChamadoDetail() {
         acao: 'assumido',
         descricao: `Chamado assumido por ${profile!.name}`,
       });
-
+      await notifyChamadoUpdate(id!, user!.id, `Chamado assumido por ${profile!.name}`, chamado.solicitante_id, chamado.responsavel_id);
       toast({ title: 'Chamado assumido!' });
       await fetchChamado();
       await fetchHistorico();
@@ -132,7 +133,7 @@ export default function ChamadoDetail() {
         acao: 'status_alterado',
         descricao,
       });
-
+      await notifyChamadoUpdate(id!, user!.id, `Status alterado: ${descricao}`, chamado.solicitante_id, chamado.responsavel_id);
       toast({ title: 'Status atualizado!' });
       await fetchChamado();
       await fetchHistorico();
@@ -153,6 +154,7 @@ export default function ChamadoDetail() {
         acao: 'observacao',
         descricao: observacao,
       });
+      await notifyChamadoUpdate(id!, user!.id, `Nova observação: ${observacao.substring(0, 80)}${observacao.length > 80 ? '...' : ''}`, chamado.solicitante_id, chamado.responsavel_id);
       setObservacao('');
       toast({ title: 'Observação adicionada!' });
       await fetchHistorico();

@@ -35,6 +35,13 @@ export default function NovoChamado() {
   const [descricao, setDescricao] = useState('');
   const [solicitanteId, setSolicitanteId] = useState('');
   const [moduloSider, setModuloSider] = useState('');
+
+  const modulosSider = [
+    { value: 'SCO', label: 'SCO - Composição de Custos e Orçamento de Obras' },
+    { value: 'SMO', label: 'SMO - Gestão de Contratos e Medições de Obras' },
+    { value: 'SGF', label: 'SGF - Gerenciamento Financeiro e Orçamentário' },
+    { value: 'MIG', label: 'MIG - Informações Gerenciais' },
+  ];
   const [classeId, setClasseId] = useState('');
 
   const isSider = setores.find(s => s.id === setorId)?.nome === 'SIDER';
@@ -170,7 +177,12 @@ export default function NovoChamado() {
           return (
             <div className="space-y-4">
               <Label>Módulo SIDER</Label>
-              <Input value={moduloSider} onChange={e => setModuloSider(e.target.value)} placeholder="Ex: Financeiro, RH" />
+              <Select value={moduloSider} onValueChange={setModuloSider}>
+                <SelectTrigger><SelectValue placeholder="Selecione o módulo" /></SelectTrigger>
+                <SelectContent>
+                  {modulosSider.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           );
         case 3:
