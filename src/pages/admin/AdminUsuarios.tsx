@@ -184,11 +184,13 @@ export default function AdminUsuarios() {
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Novo Usuário</DialogTitle></DialogHeader>
-            <UserFormFields form={newUserForm} setForm={setNewUserForm} isCreate selectedSetores={newSetores} setSelectedSetores={setNewSetores} />
-            <div className="flex gap-2 justify-end mt-4">
-              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
-              <Button type="button" onClick={handleCreateUser} disabled={saving}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Criar</Button>
-            </div>
+            <form onSubmit={e => { e.preventDefault(); handleCreateUser(); }} className="space-y-4">
+              <UserFormFields form={newUserForm} setForm={setNewUserForm} isCreate selectedSetores={newSetores} setSelectedSetores={setNewSetores} />
+              <div className="flex gap-2 justify-end mt-4">
+                <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+                <Button type="submit" disabled={saving}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Criar</Button>
+              </div>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
