@@ -128,13 +128,17 @@ export default function AdminTiposSuporte() {
     setSaving(true);
     try {
       const { id, created_at, updated_at, ...rest } = editItem;
-      const isNew = !id;
+      
+      // Filter to only include fields with actual values (exclude empty strings and undefined)
+      const dataToSave = Object.fromEntries(
+        Object.entries(rest).filter(([_key, value]) => value !== '' && value !== null && value !== undefined)
+      );
 
       if (id) {
-        const { error } = await supabase.from('tipo_suportes').update(rest).eq('id', id);
+        const { error } = await supabase.from('tipo_suportes').update(dataToSave).eq('id', id);
         if (error) throw error;
       } else {
-        const { data, error } = await supabase.from('tipo_suportes').insert(rest).select().single();
+        const { data, error } = await supabase.from('tipo_suportes').insert(dataToSave).select().single();
         if (error) throw error;
         editItem.id = data.id;
       }
