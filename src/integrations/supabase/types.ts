@@ -409,6 +409,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_setores: {
+        Row: {
+          created_at: string | null
+          id: string
+          setor_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          setor_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          setor_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_setores_setor_id_fkey"
+            columns: ["setor_id"]
+            isOneToOne: false
+            referencedRelation: "setores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           ativo: boolean | null
