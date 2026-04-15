@@ -47,9 +47,19 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarContent>
         <div className="flex items-center gap-2 px-4 py-4">
-          <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
-            HD
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="Help DER Logo" 
+            className="h-8 w-8 rounded object-contain shrink-0"
+            onError={(e) => {
+              // Fallback para o texto caso a imagem não carregue
+              e.currentTarget.style.display = 'none';
+              const fallback = document.createElement('div');
+              fallback.className = 'h-8 w-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0';
+              fallback.textContent = 'HD';
+              e.currentTarget.parentNode?.appendChild(fallback);
+            }}
+          />
           {!collapsed && (
             <div className="flex flex-col">
               <span className="font-bold text-base text-sidebar-foreground leading-tight">Help DER</span>

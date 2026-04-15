@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Ticket, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
@@ -38,9 +38,19 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 rounded-lg bg-primary flex items-center justify-center">
-              <Ticket className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="Help DER Logo" 
+              className="h-12 w-auto max-w-[200px] object-contain"
+              onError={(e) => {
+                // Fallback para o ícone caso a imagem não carregue
+                e.currentTarget.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.className = 'h-12 w-12 rounded-lg bg-primary flex items-center justify-center';
+                fallback.innerHTML = '<svg class="h-6 w-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>';
+                e.currentTarget.parentNode?.appendChild(fallback);
+              }}
+            />
           </div>
           <CardTitle className="text-2xl">Help DER</CardTitle>
           <CardDescription>Sistema de helpdesk para o DER-PE. Entre com suas credenciais para acessar o sistema.</CardDescription>
