@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, User, CreditCard, Monitor, Mail, Phone, Settings, FileText, Building, Building2, FormInput } from 'lucide-react';
 
 export default function NovoChamado() {
   const { profile, user } = useAuth();
@@ -197,22 +197,22 @@ export default function NovoChamado() {
         if (isUserRegistrationInternal) {
           finalTitulo = `Criação de usuário ${campoNomeCompleto}`;
           finalDescricao = `Solicitação de criação de usuário interno:\n\n` +
-            `👤 Nome completo: ${campoNomeCompleto}\n` +
-            `🪪 CPF: ${campoCpf}\n` +
-            `💻 Usuário SEI: ${campoUsuarioSei}\n` +
-            `📧 E-mail Expresso: ${campoEmailExpresso}\n` +
-            `📞 Telefone: ${campoTelefone}\n` +
-            `🧩 Módulos que precisa de acesso: ${campoModulos}\n\n` +
+            `• Nome completo: ${campoNomeCompleto}\n` +
+            `• CPF: ${campoCpf}\n` +
+            `• Usuário SEI: ${campoUsuarioSei}\n` +
+            `• E-mail Expresso: ${campoEmailExpresso}\n` +
+            `• Telefone: ${campoTelefone}\n` +
+            `• Módulos que precisa de acesso: ${campoModulos}\n\n` +
             `Observações adicionais: ${descricao}`;
         } else if (isUserRegistrationExternal) {
           finalTitulo = `Criação de usuário ${campoNomeRt}`;
           finalDescricao = `Solicitação de criação de usuário externo (RT):\n\n` +
-            `👤 Nome completo do RT: ${campoNomeRt}\n` +
-            `📄 Número da ART: ${campoNumeroArt}\n` +
-            `🆔 CPF do RT: ${campoCpfRt}\n` +
-            `🏛️ Número do Registro Profissional: ${campoNumeroRegistro}\n` +
-            `📧 E-mail corporativo: ${campoEmailCorporativo}\n` +
-            `🏢 CNPJ da empresa contratada: ${campoCnpjEmpresa}\n\n` +
+            `• Nome completo do RT: ${campoNomeRt}\n` +
+            `• Número da ART: ${campoNumeroArt}\n` +
+            `• CPF do RT: ${campoCpfRt}\n` +
+            `• Número do Registro Profissional: ${campoNumeroRegistro}\n` +
+            `• E-mail corporativo: ${campoEmailCorporativo}\n` +
+            `• CNPJ da empresa contratada: ${campoCnpjEmpresa}\n\n` +
             `Observações adicionais: ${descricao}`;
         }
       }
@@ -371,34 +371,53 @@ export default function NovoChamado() {
     <div className="space-y-4">
       {isUserRegistration && (
         <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-950/20">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-4">
-            📝 Formulário de {isUserRegistrationInternal ? 'Criação de Usuário Interno' : 'Criação de Usuário Externo (RT)'}
+          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-4 flex items-center gap-2">
+            <FormInput className="h-5 w-5" />
+            Formulário de {isUserRegistrationInternal ? 'Criação de Usuário Interno' : 'Criação de Usuário Externo (RT)'}
           </h3>
           
           {isUserRegistrationInternal && (
             <div className="space-y-3">
               <div>
-                <Label>👤 Nome completo *</Label>
+                <Label className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Nome completo *
+                </Label>
                 <Input value={campoNomeCompleto} onChange={e => setCampoNomeCompleto(e.target.value)} placeholder="Nome completo do usuário" />
               </div>
               <div>
-                <Label>🪪 CPF *</Label>
+                <Label className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  CPF *
+                </Label>
                 <Input value={campoCpf} onChange={e => setCampoCpf(e.target.value)} placeholder="000.000.000-00" />
               </div>
               <div>
-                <Label>💻 Usuário SEI *</Label>
+                <Label className="flex items-center gap-2">
+                  <Monitor className="h-4 w-4" />
+                  Usuário SEI *
+                </Label>
                 <Input value={campoUsuarioSei} onChange={e => setCampoUsuarioSei(e.target.value)} placeholder="Usuário no sistema SEI" />
               </div>
               <div>
-                <Label>📧 E-mail Expresso *</Label>
+                <Label className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  E-mail Expresso *
+                </Label>
                 <Input type="email" value={campoEmailExpresso} onChange={e => setCampoEmailExpresso(e.target.value)} placeholder="email@der.pe.gov.br" />
               </div>
               <div>
-                <Label>📞 Telefone *</Label>
+                <Label className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  Telefone *
+                </Label>
                 <Input value={campoTelefone} onChange={e => setCampoTelefone(e.target.value)} placeholder="(81) 99999-9999" />
               </div>
               <div>
-                <Label>🧩 Módulos que precisa de acesso *</Label>
+                <Label className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Módulos que precisa de acesso *
+                </Label>
                 <Input value={campoModulos} onChange={e => setCampoModulos(e.target.value)} placeholder="SMO, SGF e/ou SCO" />
               </div>
             </div>
@@ -407,27 +426,45 @@ export default function NovoChamado() {
           {isUserRegistrationExternal && (
             <div className="space-y-3">
               <div>
-                <Label>👤 Nome completo do RT *</Label>
+                <Label className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Nome completo do RT *
+                </Label>
                 <Input value={campoNomeRt} onChange={e => setCampoNomeRt(e.target.value)} placeholder="Nome completo do Responsável Técnico" />
               </div>
               <div>
-                <Label>📄 Número da ART *</Label>
+                <Label className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Número da ART *
+                </Label>
                 <Input value={campoNumeroArt} onChange={e => setCampoNumeroArt(e.target.value)} placeholder="Número da Anotação de Responsabilidade Técnica" />
               </div>
               <div>
-                <Label>🆔 CPF do RT *</Label>
+                <Label className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  CPF do RT *
+                </Label>
                 <Input value={campoCpfRt} onChange={e => setCampoCpfRt(e.target.value)} placeholder="000.000.000-00" />
               </div>
               <div>
-                <Label>🏛️ Número do Registro Profissional *</Label>
+                <Label className="flex items-center gap-2">
+                  <Building className="h-4 w-4" />
+                  Número do Registro Profissional *
+                </Label>
                 <Input value={campoNumeroRegistro} onChange={e => setCampoNumeroRegistro(e.target.value)} placeholder="Número do CREA/CAU" />
               </div>
               <div>
-                <Label>📧 E-mail corporativo *</Label>
+                <Label className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  E-mail corporativo *
+                </Label>
                 <Input type="email" value={campoEmailCorporativo} onChange={e => setCampoEmailCorporativo(e.target.value)} placeholder="email@empresa.com" />
               </div>
               <div>
-                <Label>🏢 CNPJ da empresa contratada *</Label>
+                <Label className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  CNPJ da empresa contratada *
+                </Label>
                 <Input value={campoCnpjEmpresa} onChange={e => setCampoCnpjEmpresa(e.target.value)} placeholder="00.000.000/0000-00" />
               </div>
             </div>

@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, User, CreditCard, Monitor, Mail, Phone, Settings, FileText, Building, Building2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
 function TipoSuporteForm({ item, setItem, classes, setores, setoresRelacionados, setSetoresRelacionados }: any) {
@@ -53,24 +53,24 @@ function TipoSuporteForm({ item, setItem, classes, setores, setoresRelacionados,
       {isUserRegistrationInternal && (
         <div className="border-t pt-4">
           <h4 className="font-semibold mb-3">Campos específicos - Cadastrar Usuário | Internos</h4>
-          <div><Label>👤 Nome completo</Label><Input value={item?.campo_nome_completo || ''} onChange={e => setItem({ ...item, campo_nome_completo: e.target.value })} /></div>
-          <div><Label>🪪 CPF</Label><Input value={item?.campo_cpf || ''} onChange={e => setItem({ ...item, campo_cpf: e.target.value })} /></div>
-          <div><Label>💻 Usuário SEI</Label><Input value={item?.campo_usuario_sei || ''} onChange={e => setItem({ ...item, campo_usuario_sei: e.target.value })} /></div>
-          <div><Label>📧 E-mail Expresso</Label><Input value={item?.campo_email_expresso || ''} onChange={e => setItem({ ...item, campo_email_expresso: e.target.value })} /></div>
-          <div><Label>📞 Telefone</Label><Input value={item?.campo_telefone || ''} onChange={e => setItem({ ...item, campo_telefone: e.target.value })} /></div>
-          <div><Label>🧩 Módulos que precisa de acesso (SMO, SGF e/ou SCO)</Label><Input value={item?.campo_modulos || ''} onChange={e => setItem({ ...item, campo_modulos: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><User className="h-4 w-4" />Nome completo</Label><Input value={item?.campo_nome_completo || ''} onChange={e => setItem({ ...item, campo_nome_completo: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><CreditCard className="h-4 w-4" />CPF</Label><Input value={item?.campo_cpf || ''} onChange={e => setItem({ ...item, campo_cpf: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><Monitor className="h-4 w-4" />Usuário SEI</Label><Input value={item?.campo_usuario_sei || ''} onChange={e => setItem({ ...item, campo_usuario_sei: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><Mail className="h-4 w-4" />E-mail Expresso</Label><Input value={item?.campo_email_expresso || ''} onChange={e => setItem({ ...item, campo_email_expresso: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><Phone className="h-4 w-4" />Telefone</Label><Input value={item?.campo_telefone || ''} onChange={e => setItem({ ...item, campo_telefone: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><Settings className="h-4 w-4" />Módulos que precisa de acesso (SMO, SGF e/ou SCO)</Label><Input value={item?.campo_modulos || ''} onChange={e => setItem({ ...item, campo_modulos: e.target.value })} /></div>
         </div>
       )}
 
       {isUserRegistrationExternal && (
         <div className="border-t pt-4">
           <h4 className="font-semibold mb-3">Campos específicos - Cadastrar Usuário | Externos (RT)</h4>
-          <div><Label>👤 Nome completo do RT</Label><Input value={item?.campo_nome_rt || ''} onChange={e => setItem({ ...item, campo_nome_rt: e.target.value })} /></div>
-          <div><Label>📄 Número da ART (referente à designação de RT do contrato)</Label><Input value={item?.campo_numero_art || ''} onChange={e => setItem({ ...item, campo_numero_art: e.target.value })} /></div>
-          <div><Label>🆔 CPF do RT</Label><Input value={item?.campo_cpf_rt || ''} onChange={e => setItem({ ...item, campo_cpf_rt: e.target.value })} /></div>
-          <div><Label>🏛️ Número do Registro Profissional (CREA/CAU)</Label><Input value={item?.campo_numero_registro || ''} onChange={e => setItem({ ...item, campo_numero_registro: e.target.value })} /></div>
-          <div><Label>📧 E-mail corporativo (para recebimento de senha)</Label><Input value={item?.campo_email_corporativo || ''} onChange={e => setItem({ ...item, campo_email_corporativo: e.target.value })} /></div>
-          <div><Label>🏢 CNPJ da empresa contratada</Label><Input value={item?.campo_cnpj_empresa || ''} onChange={e => setItem({ ...item, campo_cnpj_empresa: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><User className="h-4 w-4" />Nome completo do RT</Label><Input value={item?.campo_nome_rt || ''} onChange={e => setItem({ ...item, campo_nome_rt: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><FileText className="h-4 w-4" />Número da ART (referente à designação de RT do contrato)</Label><Input value={item?.campo_numero_art || ''} onChange={e => setItem({ ...item, campo_numero_art: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><CreditCard className="h-4 w-4" />CPF do RT</Label><Input value={item?.campo_cpf_rt || ''} onChange={e => setItem({ ...item, campo_cpf_rt: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><Building className="h-4 w-4" />Número do Registro Profissional (CREA/CAU)</Label><Input value={item?.campo_numero_registro || ''} onChange={e => setItem({ ...item, campo_numero_registro: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><Mail className="h-4 w-4" />E-mail corporativo (para recebimento de senha)</Label><Input value={item?.campo_email_corporativo || ''} onChange={e => setItem({ ...item, campo_email_corporativo: e.target.value })} /></div>
+          <div><Label className="flex items-center gap-2"><Building2 className="h-4 w-4" />CNPJ da empresa contratada</Label><Input value={item?.campo_cnpj_empresa || ''} onChange={e => setItem({ ...item, campo_cnpj_empresa: e.target.value })} /></div>
         </div>
       )}
 
