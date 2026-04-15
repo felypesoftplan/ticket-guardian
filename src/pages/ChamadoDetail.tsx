@@ -62,7 +62,18 @@ export default function ChamadoDetail() {
       fetchChamado(),
       fetchHistorico(),
       supabase.from('statuses').select('*').order('ordem'),
-    ]).then(([_, __, statusRes]) => {
+    ]).then(([chamadoRes, _, statusRes]) => {
+      // Check setor access control
+      const chamadoData = chamadoRes?.data;
+      const userSetorId = profile?.setor_id;
+      const isAdmin = profile?.role === 'admin' || profile?.role === 'gestor';
+      
+      if (chamadoData && userSetorId && !isAdmin && chamadoData.setor_id !== userSetorId) {
+        toast({ title: 'Acesso negado', description: 'Você não tem permissão para acessar este chamado', variant: 'destructive' });
+        navigate('/chamados');
+        return;
+      }
+      
       setStatuses(statusRes.data || []);
       setLoading(false);
     });

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { PrioridadeBadge } from '@/components/PrioridadeBadge';
 import { SlaBadge } from '@/components/SlaBadge';
 import { Loader2 } from 'lucide-react';
@@ -28,11 +29,14 @@ export default function KanbanBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const userSetorId = profile?.setor_id;
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'gestor';
 
   useEffect(() => {
     const fetch = async () => {
       const { data: statuses } = await supabase.from('statuses').select('*').order('ordem');
-      const { data: chamados } = await supabase
+      let query = supabase
         .from('chamados')
         .select(`
           id, titulo, sla_vencimento, status_id, created_at,
@@ -41,6 +45,12 @@ export default function KanbanBoard() {
           tipo_suporte:tipo_suportes(nome),
           responsavel:users!chamados_responsavel_id_fkey(name)
         `);
+      
+      if (userSetorId && !isAdmin) {
+        query = query.eq('setor_id', userSetorId);
+      }
+      
+      const { data: chamados } = await query;
 
       const cols: Column[] = (statuses || []).map(s => ({
         id: s.id,
@@ -64,7 +74,7 @@ export default function KanbanBoard() {
       setLoading(false);
     };
     fetch();
-  }, []);
+  }, [userSetorId, isAdmin]);
 
   if (loading) return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 

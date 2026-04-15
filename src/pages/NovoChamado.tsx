@@ -16,6 +16,8 @@ export default function NovoChamado() {
   const { profile, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const userSetorId = profile?.setor_id;
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'gestor';
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -69,18 +71,31 @@ export default function NovoChamado() {
   const isUserRegistration = isUserRegistrationInternal || isUserRegistrationExternal;
 
   useEffect(() => {
-    Promise.all([
-      supabase.from('setores').select('*').eq('ativo', true),
-      supabase.from('prioridades').select('*').eq('ativo', true).order('nivel'),
-      supabase.from('users').select('id, name').eq('ativo', true),
-      supabase.from('classe_suportes').select('*').eq('ativo', true),
-    ]).then(([setoresRes, prioridadesRes, usersRes, classeRes]) => {
+    const fetch = async () => {
+      // If user has setor_id and is not admin, only fetch their setor
+      let setoresQuery = supabase.from('setores').select('*').eq('ativo', true);
+      if (userSetorId && !isAdmin) {
+        setoresQuery = setoresQuery.eq('id', userSetorId);
+      }
+
+      const [setoresRes, prioridadesRes, usersRes, classeRes] = await Promise.all([
+        setoresQuery,
+        supabase.from('prioridades').select('*').eq('ativo', true).order('nivel'),
+        supabase.from('users').select('id, name').eq('ativo', true),
+        supabase.from('classe_suportes').select('*').eq('ativo', true),
+      ]);
       setSetores(setoresRes.data || []);
       setPrioridades(prioridadesRes.data || []);
       setUsuarios(usersRes.data || []);
       setClasseSuportes(classeRes.data || []);
-    });
-  }, []);
+      
+      // If user has a setor and not admin, auto-select their setor
+      if (userSetorId && !isAdmin && setoresRes.data && setoresRes.data.length > 0) {
+        setSetorId(userSetorId);
+      }
+    };
+    fetch();
+  }, [userSetorId, isAdmin]);
 
   useEffect(() => {
     if (!setorId) return;
@@ -285,12 +300,16 @@ export default function NovoChamado() {
           return (
             <div className="space-y-4">
               <Label>Setor</Label>
-              <Select value={setorId} onValueChange={v => { setSetorId(v); setTipoSuporteId(''); }}>
-                <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
-                <SelectContent>
-                  {setores.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              {userSetorId && !isAdmin && setores.length === 1 ? (
+                <div className="p-3 rounded-md bg-muted text-sm font-medium">{setores[0]?.nome || 'Seu setor'}</div>
+              ) : (
+                <Select value={setorId} onValueChange={v => { setSetorId(v); setTipoSuporteId(''); }}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
+                  <SelectContent>
+                    {setores.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           );
         case 2:
@@ -341,12 +360,16 @@ export default function NovoChamado() {
             <div className="space-y-4">
               <div>
                 <Label>Setor</Label>
-                <Select value={setorId} onValueChange={v => { setSetorId(v); setTipoSuporteId(''); }}>
-                  <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
-                  <SelectContent>
-                    {setores.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                {userSetorId && !isAdmin && setores.length === 1 ? (
+                  <div className="p-3 rounded-md bg-muted text-sm font-medium">{setores[0]?.nome || 'Seu setor'}</div>
+                ) : (
+                  <Select value={setorId} onValueChange={v => { setSetorId(v); setTipoSuporteId(''); }}>
+                    <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
+                    <SelectContent>
+                      {setores.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               {setorId && (
                 <div>

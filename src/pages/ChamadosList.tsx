@@ -30,7 +30,10 @@ export default function ChamadosList() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [statuses, setStatuses] = useState<{ id: string; nome: string }[]>([]);
+  const { profile } = useAuth();
   const navigate = useNavigate();
+  const userSetorId = profile?.setor_id;
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'gestor';
 
   useEffect(() => {
     supabase.from('statuses').select('id, nome').order('ordem').then(({ data }) => {
@@ -57,12 +60,17 @@ export default function ChamadosList() {
         query = query.eq('status_id', statusFilter);
       }
 
+      // If user has a setor_id and is not admin, filter by their setor
+      if (userSetorId && !isAdmin) {
+        query = query.eq('setor_id', userSetorId);
+      }
+
       const { data } = await query;
       setChamados((data as any) || []);
       setLoading(false);
     };
     fetch();
-  }, [statusFilter]);
+  }, [statusFilter, userSetorId, isAdmin]);
 
   const filtered = chamados.filter(c =>
     !search || c.titulo.toLowerCase().includes(search.toLowerCase())
