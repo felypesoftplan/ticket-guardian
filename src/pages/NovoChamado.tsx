@@ -167,7 +167,7 @@ export default function NovoChamado() {
       toast({ title: 'Título deve ter pelo menos 5 caracteres', variant: 'destructive' });
       return;
     }
-    if (!descricao || descricao.length < 10) {
+    if (!isUserRegistration && (!descricao || descricao.length < 10)) {
       toast({ title: 'Descrição deve ter pelo menos 10 caracteres', variant: 'destructive' });
       return;
     }
@@ -191,7 +191,7 @@ export default function NovoChamado() {
     try {
       // Generate title and description for user registration
       let finalTitulo = titulo;
-      let finalDescricao = descricao;
+      let finalDescricao = descricao || '';
 
       if (isUserRegistration) {
         if (isUserRegistrationInternal) {
@@ -202,8 +202,10 @@ export default function NovoChamado() {
             `• Usuário SEI: ${campoUsuarioSei}\n` +
             `• E-mail Expresso: ${campoEmailExpresso}\n` +
             `• Telefone: ${campoTelefone}\n` +
-            `• Módulos que precisa de acesso: ${campoModulos}\n\n` +
-            `Observações adicionais: ${descricao}`;
+            `• Módulos que precisa de acesso: ${campoModulos}`;
+          if (descricao) {
+            finalDescricao += `\n\nObservações adicionais: ${descricao}`;
+          }
         } else if (isUserRegistrationExternal) {
           finalTitulo = `Criação de usuário ${campoNomeRt}`;
           finalDescricao = `Solicitação de criação de usuário externo (RT):\n\n` +
@@ -212,8 +214,10 @@ export default function NovoChamado() {
             `• CPF do RT: ${campoCpfRt}\n` +
             `• Número do Registro Profissional: ${campoNumeroRegistro}\n` +
             `• E-mail corporativo: ${campoEmailCorporativo}\n` +
-            `• CNPJ da empresa contratada: ${campoCnpjEmpresa}\n\n` +
-            `Observações adicionais: ${descricao}`;
+            `• CNPJ da empresa contratada: ${campoCnpjEmpresa}`;
+          if (descricao) {
+            finalDescricao += `\n\nObservações adicionais: ${descricao}`;
+          }
         }
       }
       // Get initial status
@@ -572,7 +576,7 @@ export default function NovoChamado() {
             }
           }
           // For non-user registration, require title and description
-          return !isUserRegistration ? (titulo.length >= 5 && descricao.length >= 10) : (descricao.length >= 10);
+          return !isUserRegistration ? (titulo.length >= 5 && descricao.length >= 10) : true;
         }
         case 6: return !!prioridadeId;
       }
@@ -589,7 +593,7 @@ export default function NovoChamado() {
             }
           }
           // For non-user registration, require title and description
-          return !isUserRegistration ? (titulo.length >= 5 && descricao.length >= 10) : (descricao.length >= 10);
+          return !isUserRegistration ? (titulo.length >= 5 && descricao.length >= 10) : true;
         }
         case 3: return !!prioridadeId;
         case 4: return true;
