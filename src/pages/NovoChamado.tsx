@@ -37,6 +37,20 @@ export default function NovoChamado() {
   const [moduloSider, setModuloSider] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
 
+  // User registration fields
+  const [campoNomeCompleto, setCampoNomeCompleto] = useState('');
+  const [campoCpf, setCampoCpf] = useState('');
+  const [campoUsuarioSei, setCampoUsuarioSei] = useState('');
+  const [campoEmailExpresso, setCampoEmailExpresso] = useState('');
+  const [campoTelefone, setCampoTelefone] = useState('');
+  const [campoModulos, setCampoModulos] = useState('');
+  const [campoNomeRt, setCampoNomeRt] = useState('');
+  const [campoNumeroArt, setCampoNumeroArt] = useState('');
+  const [campoCpfRt, setCampoCpfRt] = useState('');
+  const [campoNumeroRegistro, setCampoNumeroRegistro] = useState('');
+  const [campoEmailCorporativo, setCampoEmailCorporativo] = useState('');
+  const [campoCnpjEmpresa, setCampoCnpjEmpresa] = useState('');
+
   const modulosSider = [
     { value: 'SCO', label: 'SCO - Composição de Custos e Orçamento de Obras' },
     { value: 'SMO', label: 'SMO - Gestão de Contratos e Medições de Obras' },
@@ -47,6 +61,12 @@ export default function NovoChamado() {
 
   const isSider = setores.find(s => s.id === setorId)?.nome === 'SIDER';
   const canChooseSolicitante = profile?.role === 'admin' || profile?.role === 'gestor';
+
+  // Check if selected tipo suporte is for user registration
+  const selectedTipoSuporte = tipoSuportes.find(t => t.id === tipoSuporteId);
+  const isUserRegistrationInternal = selectedTipoSuporte?.nome?.includes('Cadastrar Usuário') && selectedTipoSuporte?.nome?.includes('Internos');
+  const isUserRegistrationExternal = selectedTipoSuporte?.nome?.includes('Cadastrar Usuário') && selectedTipoSuporte?.nome?.includes('Externos');
+  const isUserRegistration = isUserRegistrationInternal || isUserRegistrationExternal;
 
   useEffect(() => {
     Promise.all([
@@ -91,6 +111,24 @@ export default function NovoChamado() {
     }
   }, [user, canChooseSolicitante]);
 
+  // Clear user registration fields when tipo suporte changes
+  useEffect(() => {
+    if (!isUserRegistration) {
+      setCampoNomeCompleto('');
+      setCampoCpf('');
+      setCampoUsuarioSei('');
+      setCampoEmailExpresso('');
+      setCampoTelefone('');
+      setCampoModulos('');
+      setCampoNomeRt('');
+      setCampoNumeroArt('');
+      setCampoCpfRt('');
+      setCampoNumeroRegistro('');
+      setCampoEmailCorporativo('');
+      setCampoCnpjEmpresa('');
+    }
+  }, [tipoSuporteId, isUserRegistration]);
+
   const handleAttachmentChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
     setAttachments(files);
@@ -133,8 +171,50 @@ export default function NovoChamado() {
       return;
     }
 
+    // Validate user registration fields if applicable
+    if (isUserRegistration) {
+      if (isUserRegistrationInternal) {
+        if (!campoNomeCompleto || !campoCpf || !campoUsuarioSei || !campoEmailExpresso || !campoTelefone || !campoModulos) {
+          toast({ title: 'Todos os campos de cadastro de usuário interno são obrigatórios', variant: 'destructive' });
+          return;
+        }
+      } else if (isUserRegistrationExternal) {
+        if (!campoNomeRt || !campoNumeroArt || !campoCpfRt || !campoNumeroRegistro || !campoEmailCorporativo || !campoCnpjEmpresa) {
+          toast({ title: 'Todos os campos de cadastro de usuário externo são obrigatórios', variant: 'destructive' });
+          return;
+        }
+      }
+    }
+
     setLoading(true);
     try {
+      // Generate title and description for user registration
+      let finalTitulo = titulo;
+      let finalDescricao = descricao;
+
+      if (isUserRegistration) {
+        if (isUserRegistrationInternal) {
+          finalTitulo = `Criação de usuário ${campoNomeCompleto}`;
+          finalDescricao = `Solicitação de criação de usuário interno:\n\n` +
+            `👤 Nome completo: ${campoNomeCompleto}\n` +
+            `🪪 CPF: ${campoCpf}\n` +
+            `💻 Usuário SEI: ${campoUsuarioSei}\n` +
+            `📧 E-mail Expresso: ${campoEmailExpresso}\n` +
+            `📞 Telefone: ${campoTelefone}\n` +
+            `🧩 Módulos que precisa de acesso: ${campoModulos}\n\n` +
+            `Observações adicionais: ${descricao}`;
+        } else if (isUserRegistrationExternal) {
+          finalTitulo = `Criação de usuário ${campoNomeRt}`;
+          finalDescricao = `Solicitação de criação de usuário externo (RT):\n\n` +
+            `👤 Nome completo do RT: ${campoNomeRt}\n` +
+            `📄 Número da ART: ${campoNumeroArt}\n` +
+            `🆔 CPF do RT: ${campoCpfRt}\n` +
+            `🏛️ Número do Registro Profissional: ${campoNumeroRegistro}\n` +
+            `📧 E-mail corporativo: ${campoEmailCorporativo}\n` +
+            `🏢 CNPJ da empresa contratada: ${campoCnpjEmpresa}\n\n` +
+            `Observações adicionais: ${descricao}`;
+        }
+      }
       // Get initial status
       const { data: statusInicial } = await supabase
         .from('statuses')
@@ -157,8 +237,8 @@ export default function NovoChamado() {
       const { data: chamado, error } = await supabase
         .from('chamados')
         .insert({
-          titulo,
-          descricao,
+          titulo: finalTitulo,
+          descricao: finalDescricao,
           setor_id: setorId,
           tipo_suporte_id: tipoSuporteId,
           prioridade_id: prioridadeId,
@@ -288,13 +368,90 @@ export default function NovoChamado() {
 
   const renderDetailsStep = () => (
     <div className="space-y-4">
+      {isUserRegistration && (
+        <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-950/20">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-4">
+            📝 Formulário de {isUserRegistrationInternal ? 'Criação de Usuário Interno' : 'Criação de Usuário Externo (RT)'}
+          </h3>
+          
+          {isUserRegistrationInternal && (
+            <div className="space-y-3">
+              <div>
+                <Label>👤 Nome completo *</Label>
+                <Input value={campoNomeCompleto} onChange={e => setCampoNomeCompleto(e.target.value)} placeholder="Nome completo do usuário" />
+              </div>
+              <div>
+                <Label>🪪 CPF *</Label>
+                <Input value={campoCpf} onChange={e => setCampoCpf(e.target.value)} placeholder="000.000.000-00" />
+              </div>
+              <div>
+                <Label>💻 Usuário SEI *</Label>
+                <Input value={campoUsuarioSei} onChange={e => setCampoUsuarioSei(e.target.value)} placeholder="Usuário no sistema SEI" />
+              </div>
+              <div>
+                <Label>📧 E-mail Expresso *</Label>
+                <Input type="email" value={campoEmailExpresso} onChange={e => setCampoEmailExpresso(e.target.value)} placeholder="email@der.pe.gov.br" />
+              </div>
+              <div>
+                <Label>📞 Telefone *</Label>
+                <Input value={campoTelefone} onChange={e => setCampoTelefone(e.target.value)} placeholder="(81) 99999-9999" />
+              </div>
+              <div>
+                <Label>🧩 Módulos que precisa de acesso *</Label>
+                <Input value={campoModulos} onChange={e => setCampoModulos(e.target.value)} placeholder="SMO, SGF e/ou SCO" />
+              </div>
+            </div>
+          )}
+
+          {isUserRegistrationExternal && (
+            <div className="space-y-3">
+              <div>
+                <Label>👤 Nome completo do RT *</Label>
+                <Input value={campoNomeRt} onChange={e => setCampoNomeRt(e.target.value)} placeholder="Nome completo do Responsável Técnico" />
+              </div>
+              <div>
+                <Label>📄 Número da ART *</Label>
+                <Input value={campoNumeroArt} onChange={e => setCampoNumeroArt(e.target.value)} placeholder="Número da Anotação de Responsabilidade Técnica" />
+              </div>
+              <div>
+                <Label>🆔 CPF do RT *</Label>
+                <Input value={campoCpfRt} onChange={e => setCampoCpfRt(e.target.value)} placeholder="000.000.000-00" />
+              </div>
+              <div>
+                <Label>🏛️ Número do Registro Profissional *</Label>
+                <Input value={campoNumeroRegistro} onChange={e => setCampoNumeroRegistro(e.target.value)} placeholder="Número do CREA/CAU" />
+              </div>
+              <div>
+                <Label>📧 E-mail corporativo *</Label>
+                <Input type="email" value={campoEmailCorporativo} onChange={e => setCampoEmailCorporativo(e.target.value)} placeholder="email@empresa.com" />
+              </div>
+              <div>
+                <Label>🏢 CNPJ da empresa contratada *</Label>
+                <Input value={campoCnpjEmpresa} onChange={e => setCampoCnpjEmpresa(e.target.value)} placeholder="00.000.000/0000-00" />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div>
-        <Label>Título</Label>
-        <Input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Mín 5 caracteres" maxLength={255} />
+        <Label>Título {isUserRegistration ? '(Será gerado automaticamente)' : '*'}</Label>
+        <Input 
+          value={titulo} 
+          onChange={e => setTitulo(e.target.value)} 
+          placeholder={isUserRegistration ? "Será preenchido automaticamente" : "Mín 5 caracteres"} 
+          maxLength={255}
+          disabled={isUserRegistration}
+        />
       </div>
       <div>
-        <Label>Descrição</Label>
-        <Textarea value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Mín 10 caracteres" rows={4} />
+        <Label>Descrição {isUserRegistration ? '(Observações adicionais)' : '*'}</Label>
+        <Textarea 
+          value={descricao} 
+          onChange={e => setDescricao(e.target.value)} 
+          placeholder={isUserRegistration ? "Observações adicionais (opcional)" : "Mín 10 caracteres"} 
+          rows={4}
+        />
       </div>
       <div>
         <Label>Anexos</Label>
@@ -367,13 +524,33 @@ export default function NovoChamado() {
         case 2: return !!moduloSider;
         case 3: return !!classeId;
         case 4: return !!tipoSuporteId;
-        case 5: return titulo.length >= 5 && descricao.length >= 10;
+        case 5: {
+          // Validate user registration fields if applicable
+          if (isUserRegistration) {
+            if (isUserRegistrationInternal) {
+              return !!campoNomeCompleto && !!campoCpf && !!campoUsuarioSei && !!campoEmailExpresso && !!campoTelefone && !!campoModulos;
+            } else if (isUserRegistrationExternal) {
+              return !!campoNomeRt && !!campoNumeroArt && !!campoCpfRt && !!campoNumeroRegistro && !!campoEmailCorporativo && !!campoCnpjEmpresa;
+            }
+          }
+          return titulo.length >= 5 && descricao.length >= 10;
+        }
         case 6: return !!prioridadeId;
       }
     } else {
       switch (step) {
         case 1: return !!setorId && !!tipoSuporteId;
-        case 2: return titulo.length >= 5 && descricao.length >= 10;
+        case 2: {
+          // Validate user registration fields if applicable
+          if (isUserRegistration) {
+            if (isUserRegistrationInternal) {
+              return !!campoNomeCompleto && !!campoCpf && !!campoUsuarioSei && !!campoEmailExpresso && !!campoTelefone && !!campoModulos;
+            } else if (isUserRegistrationExternal) {
+              return !!campoNomeRt && !!campoNumeroArt && !!campoCpfRt && !!campoNumeroRegistro && !!campoEmailCorporativo && !!campoCnpjEmpresa;
+            }
+          }
+          return titulo.length >= 5 && descricao.length >= 10;
+        }
         case 3: return !!prioridadeId;
         case 4: return true;
       }

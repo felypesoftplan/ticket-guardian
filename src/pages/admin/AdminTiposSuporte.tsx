@@ -97,27 +97,42 @@ export default function AdminTiposSuporte() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [tiposRes, classesRes, setoresRes] = await Promise.all([
-      supabase.from('tipo_suportes').select('*').order('nome'),
-      supabase.from('classe_suportes').select('*').eq('ativo', true),
-      supabase.from('setores').select('*').eq('ativo', true),
-    ]);
+    setItems([]); // Clear items while loading to prevent stale data issues
+    try {
+      const [tiposRes, classesRes, setoresRes] = await Promise.all([
+        supabase.from('tipo_suportes').select('*').order('nome'),
+        supabase.from('classe_suportes').select('*').eq('ativo', true),
+        supabase.from('setores').select('*').eq('ativo', true),
+      ]);
 
-    // Populate _setorIds for each tipo_suporte
-    const tiposWithSetores = await Promise.all(
-      (tiposRes.data || []).map(async (tipo) => {
-        const { data } = await supabase.from('setor_tipo_suporte').select('setor_id').eq('tipo_suporte_id', tipo.id);
-        return {
-          ...tipo,
-          _setorIds: (data || []).map((d: any) => d.setor_id)
-        };
-      })
-    );
+      // Populate _setorIds for each tipo_suporte
+      const tiposWithSetores = await Promise.all(
+        (tiposRes.data || []).map(async (tipo) => {
+          try {
+            const { data } = await supabase.from('setor_tipo_suporte').select('setor_id').eq('tipo_suporte_id', tipo.id);
+            return {
+              ...tipo,
+              _setorIds: (data || []).map((d: any) => d.setor_id)
+            };
+          } catch (error) {
+            console.error('Error fetching setores for tipo:', tipo.id, error);
+            return {
+              ...tipo,
+              _setorIds: []
+            };
+          }
+        })
+      );
 
-    setItems(tiposWithSetores);
-    setClasses(classesRes.data || []);
-    setSetores(setoresRes.data || []);
-    setLoading(false);
+      setItems(tiposWithSetores);
+      setClasses(classesRes.data || []);
+      setSetores(setoresRes.data || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast({ title: 'Erro ao carregar dados', description: 'Não foi possível carregar os tipos de suporte.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -139,7 +154,7 @@ export default function AdminTiposSuporte() {
     if (!editItem) return;
     setSaving(true);
     try {
-      const { id, created_at, updated_at, ...rest } = editItem;
+      const { id, created_at, updated_at, _setorIds, ...rest } = editItem;
       
       // Filter to only include fields with actual values (exclude empty strings and undefined)
       const dataToSave = Object.fromEntries(
@@ -190,11 +205,13 @@ export default function AdminTiposSuporte() {
   const getClasseNome = (classeId: string) => classes.find(c => c.id === classeId)?.nome || '—';
 
   const getSetorNomesList = (tipoId: string) => {
-    const relatedSetores = items.find(i => i.id === tipoId)?._setorIds || [];
-    return relatedSetores.map((id: string) => setores.find(s => s.id === id)?.nome).filter(Boolean).join(', ') || '—';
+    const item = items.find(i => i.id === tipoId);
+    if (!item || !item._setorIds) return '—';
+    return item._setorIds.map((id: string) => setores.find(s => s.id === id)?.nome).filter(Boolean).join(', ') || '—';
   };
 
-  const filteredItems = items.filter(item => {
+  const filteredItems = loading ? [] : items.filter(item => {
+    if (!item || !item._setorIds) return true; // Include items that don't have _setorIds yet
     const matchesNome = item.nome.toLowerCase().includes(filterNome.toLowerCase());
     const matchesClasse = !filterClasse || item.classe_suporte_id === filterClasse;
     const matchesSetor = !filterSetor || (item._setorIds || []).includes(filterSetor);
@@ -275,7 +292,7 @@ export default function AdminTiposSuporte() {
               <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.nome}</TableCell>
                 <TableCell>{getClasseNome(item.classe_suporte_id)}</TableCell>
-                <TableCell className="text-sm">{getSetorNomesList(item.id)}</TableCell>
+                <TableCell className="text-sm">{item._setorIds ? getSetorNomesList(item.id) : 'Carregando...'}</TableCell>
                 <TableCell>{item.prazo_dias_uteis}</TableCell>
                 <TableCell><Badge variant={item.ativo ? 'default' : 'secondary'}>{item.ativo ? 'Ativo' : 'Inativo'}</Badge></TableCell>
                 <TableCell>
