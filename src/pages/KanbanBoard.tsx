@@ -11,6 +11,9 @@ interface KanbanCard {
   sla_vencimento: string | null;
   prioridade: { nome: string; cor: string } | null;
   solicitante: { name: string } | null;
+  tipo_suporte: { nome: string } | null;
+  responsavel: { name: string } | null;
+  created_at: string;
 }
 
 interface Column {
@@ -32,9 +35,11 @@ export default function KanbanBoard() {
       const { data: chamados } = await supabase
         .from('chamados')
         .select(`
-          id, titulo, sla_vencimento, status_id,
+          id, titulo, sla_vencimento, status_id, created_at,
           prioridade:prioridades(nome, cor),
-          solicitante:users!chamados_solicitante_id_fkey(name)
+          solicitante:users!chamados_solicitante_id_fkey(name),
+          tipo_suporte:tipo_suportes(nome),
+          responsavel:users!chamados_responsavel_id_fkey(name)
         `);
 
       const cols: Column[] = (statuses || []).map(s => ({
@@ -44,7 +49,16 @@ export default function KanbanBoard() {
         final: s.final || false,
         cards: ((chamados || []) as any[])
           .filter(c => c.status_id === s.id)
-          .map(c => ({ id: c.id, titulo: c.titulo, sla_vencimento: c.sla_vencimento, prioridade: c.prioridade, solicitante: c.solicitante })),
+          .map(c => ({ 
+            id: c.id, 
+            titulo: c.titulo, 
+            sla_vencimento: c.sla_vencimento, 
+            prioridade: c.prioridade, 
+            solicitante: c.solicitante,
+            tipo_suporte: c.tipo_suporte,
+            responsavel: c.responsavel,
+            created_at: c.created_at
+          })),
       }));
       setColumns(cols);
       setLoading(false);
@@ -71,11 +85,35 @@ export default function KanbanBoard() {
                   onClick={() => navigate(`/chamados/${card.id}`)}
                 >
                   <p className="text-sm font-medium line-clamp-2">{card.titulo}</p>
+                  
+                  {/* Tipo de suporte */}
+                  {card.tipo_suporte && (
+                    <p className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded">
+                      {card.tipo_suporte.nome}
+                    </p>
+                  )}
+                  
                   <div className="flex items-center justify-between gap-2">
                     {card.prioridade && <PrioridadeBadge nome={card.prioridade.nome} cor={card.prioridade.cor} />}
                     <SlaBadge slaVencimento={card.sla_vencimento} statusFinal={col.final} />
                   </div>
-                  <p className="text-xs text-muted-foreground">{card.solicitante?.name}</p>
+                  
+                  {/* Responsável */}
+                  {card.responsavel && (
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium">Responsável:</span> {card.responsavel.name}
+                    </p>
+                  )}
+                  
+                  {/* Data de criação */}
+                  <p className="text-xs text-muted-foreground">
+                    Criado: {new Date(card.created_at).toLocaleDateString('pt-BR')}
+                  </p>
+                  
+                  {/* Solicitante */}
+                  <p className="text-xs text-muted-foreground">
+                    Solicitante: {card.solicitante?.name}
+                  </p>
                 </div>
               ))}
               {col.cards.length === 0 && (
