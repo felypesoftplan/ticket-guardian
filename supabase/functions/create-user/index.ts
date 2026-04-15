@@ -1,34 +1,18 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
-interface CreateUserRequest {
-  name: string;
-  username: string;
-  email: string;
-  password: string;
-  role: 'admin' | 'suporte' | 'gestor' | 'usuario';
-  setor_id?: string;
-  ativo?: boolean;
-}
-
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 const jsonResponse = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: corsHeaders,
-  });
+  new Response(JSON.stringify(body), { status, headers: corsHeaders });
 
-export async function onRequest(req: Request): Promise<Response> {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   if (req.method !== 'POST') {
@@ -36,15 +20,12 @@ export async function onRequest(req: Request): Promise<Response> {
   }
 
   try {
-    // Get request body
-    const body: CreateUserRequest = await req.json();
+    const body = await req.json();
 
-    // Validate input
     if (!body.name || !body.username || !body.email || !body.password || !body.role) {
       return jsonResponse({ error: 'Missing required fields: name, username, email, password, role' }, 400);
     }
 
-    // Initialize Supabase admin client
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
@@ -54,7 +35,6 @@ export async function onRequest(req: Request): Promise<Response> {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-    // Create auth user
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: body.email,
       password: body.password,
@@ -65,20 +45,17 @@ export async function onRequest(req: Request): Promise<Response> {
       return jsonResponse({ error: `Failed to create auth user: ${authError?.message}` }, 400);
     }
 
-    // Create user profile
     const { data: profileData, error: profileError } = await supabaseAdmin
       .from('users')
-      .insert([
-        {
-          id: authData.user.id,
-          name: body.name,
-          username: body.username,
-          email: body.email,
-          role: body.role,
-          setor_id: body.setor_id || null,
-          ativo: body.ativo !== false,
-        },
-      ])
+      .insert([{
+        id: authData.user.id,
+        name: body.name,
+        username: body.username,
+        email: body.email,
+        role: body.role,
+        setor_id: body.setor_id || null,
+        ativo: body.ativo !== false,
+      }])
       .select()
       .single();
 
@@ -87,12 +64,18 @@ export async function onRequest(req: Request): Promise<Response> {
       return jsonResponse({ error: `Failed to create user profile: ${profileError.message}` }, 400);
     }
 
+    // Create user_roles entry
+    await supabaseAdmin.from('user_roles').insert({
+      user_id: authData.user.id,
+      role: body.role,
+    });
+
     return jsonResponse({
       success: true,
       user: profileData,
-      message: 'Usuario criado com sucesso!',
+      message: 'Usuário criado com sucesso!',
     }, 201);
   } catch (error: any) {
     return jsonResponse({ error: error.message || 'Unknown error' }, 500);
   }
-}
+});
