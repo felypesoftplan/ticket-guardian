@@ -162,7 +162,8 @@ export default function NovoChamado() {
   };
 
   const handleSubmit = async () => {
-    if (!titulo || titulo.length < 5) {
+    // Validate title only if not user registration (which generates title automatically)
+    if (!isUserRegistration && (!titulo || titulo.length < 5)) {
       toast({ title: 'Título deve ter pelo menos 5 caracteres', variant: 'destructive' });
       return;
     }
@@ -533,7 +534,8 @@ export default function NovoChamado() {
               return !!campoNomeRt && !!campoNumeroArt && !!campoCpfRt && !!campoNumeroRegistro && !!campoEmailCorporativo && !!campoCnpjEmpresa;
             }
           }
-          return titulo.length >= 5 && descricao.length >= 10;
+          // For non-user registration, require title and description
+          return !isUserRegistration ? (titulo.length >= 5 && descricao.length >= 10) : (descricao.length >= 10);
         }
         case 6: return !!prioridadeId;
       }
@@ -549,7 +551,8 @@ export default function NovoChamado() {
               return !!campoNomeRt && !!campoNumeroArt && !!campoCpfRt && !!campoNumeroRegistro && !!campoEmailCorporativo && !!campoCnpjEmpresa;
             }
           }
-          return titulo.length >= 5 && descricao.length >= 10;
+          // For non-user registration, require title and description
+          return !isUserRegistration ? (titulo.length >= 5 && descricao.length >= 10) : (descricao.length >= 10);
         }
         case 3: return !!prioridadeId;
         case 4: return true;
