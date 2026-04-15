@@ -63,12 +63,22 @@ export function AppHeader() {
               <p className="text-xs text-muted-foreground">{roleLabels[profile?.role || 'usuario']}</p>
             </div>
             <DropdownMenuSeparator className="sm:hidden" />
+            <DropdownMenuItem className="cursor-default">
+              <span className="text-sm font-medium">{profile?.name}</span>
+              <span className="text-xs text-muted-foreground">{roleLabels[profile?.role || 'usuario']}</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <Button variant="ghost" size="sm" onClick={signOut} title="Sair">
+          <LogOut className="h-4 w-4" />
+          <span className="hidden sm:inline">Sair</span>
+        </Button>
       </div>
     </header>
   );

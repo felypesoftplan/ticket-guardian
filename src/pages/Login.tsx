@@ -42,8 +42,8 @@ export default function Login() {
               <Ticket className="h-6 w-6 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl">HelpDesk</CardTitle>
-          <CardDescription>Entre com suas credenciais para acessar o sistema</CardDescription>
+          <CardTitle className="text-2xl">Help DER</CardTitle>
+          <CardDescription>Sistema de helpdesk para o DER-PE. Entre com suas credenciais para acessar o sistema.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

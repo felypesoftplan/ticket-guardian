@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { createUser, deleteUser } from '@/lib/user-api';
@@ -180,14 +180,14 @@ export default function AdminUsuarios() {
         <h1 className="text-2xl font-bold">Usuários</h1>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" />Novo Usuário</Button>
+            <Button type="button"><Plus className="mr-2 h-4 w-4" />Novo Usuário</Button>
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Novo Usuário</DialogTitle></DialogHeader>
             <UserFormFields form={newUserForm} setForm={setNewUserForm} isCreate selectedSetores={newSetores} setSelectedSetores={setNewSetores} />
             <div className="flex gap-2 justify-end mt-4">
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
-              <Button onClick={handleCreateUser} disabled={saving}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Criar</Button>
+              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+              <Button type="button" onClick={handleCreateUser} disabled={saving}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Criar</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -221,10 +221,10 @@ export default function AdminUsuarios() {
                 <TableCell><Badge variant={u.ativo ? 'default' : 'secondary'}>{u.ativo ? 'Ativo' : 'Inativo'}</Badge></TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" onClick={() => { setEditingUser(u); setEditSetores(userSetoresMap[u.id] || []); setIsEditOpen(true); }}>
+                    <Button type="button" size="icon" variant="ghost" onClick={() => { setEditingUser(u); setEditSetores(userSetoresMap[u.id] || []); setIsEditOpen(true); }}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => setDeleteId(u.id)}>
+                    <Button type="button" size="icon" variant="ghost" onClick={() => setDeleteId(u.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
@@ -243,8 +243,8 @@ export default function AdminUsuarios() {
             <>
               <UserFormFields form={editingUser} setForm={setEditingUser} isCreate={false} selectedSetores={editSetores} setSelectedSetores={setEditSetores} />
               <div className="flex gap-2 justify-end mt-4">
-                <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
-                <Button onClick={handleEditSave} disabled={saving}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Salvar</Button>
+                <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
+                <Button type="button" onClick={handleEditSave} disabled={saving}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Salvar</Button>
               </div>
             </>
           )}

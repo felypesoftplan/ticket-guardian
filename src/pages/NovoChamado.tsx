@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +35,7 @@ export default function NovoChamado() {
   const [descricao, setDescricao] = useState('');
   const [solicitanteId, setSolicitanteId] = useState('');
   const [moduloSider, setModuloSider] = useState('');
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   const modulosSider = [
     { value: 'SCO', label: 'SCO - Composição de Custos e Orçamento de Obras' },
@@ -89,6 +90,38 @@ export default function NovoChamado() {
       setSolicitanteId(user.id);
     }
   }, [user, canChooseSolicitante]);
+
+  const handleAttachmentChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    setAttachments(files);
+  };
+
+  const uploadAttachments = async (chamadoId: string) => {
+    if (attachments.length === 0) return;
+
+    for (const file of attachments) {
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+      const filePath = `chamados/${chamadoId}/${Date.now()}-${safeFileName}`;
+      const { error: uploadError } = await supabase.storage.from('chamados').upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { error: insertError } = await supabase.from('chamado_anexos').insert({
+        chamado_id: chamadoId,
+        nome_original: file.name,
+        caminho: filePath,
+      });
+
+      if (insertError) {
+        throw insertError;
+      }
+    }
+  };
 
   const handleSubmit = async () => {
     if (!titulo || titulo.length < 5) {
@@ -146,6 +179,8 @@ export default function NovoChamado() {
         acao: 'criado',
         descricao: 'Chamado criado',
       });
+
+      await uploadAttachments(chamado.id);
 
       toast({ title: 'Chamado criado com sucesso!' });
       navigate(`/chamados/${chamado.id}`);
@@ -260,6 +295,23 @@ export default function NovoChamado() {
       <div>
         <Label>Descrição</Label>
         <Textarea value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Mín 10 caracteres" rows={4} />
+      </div>
+      <div>
+        <Label>Anexos</Label>
+        <Input type="file" accept="image/*" multiple onChange={handleAttachmentChange} />
+        {attachments.length > 0 && (
+          <div className="space-y-2 mt-2">
+            <p className="text-sm text-muted-foreground">Arquivos selecionados:</p>
+            {attachments.map((file, index) => (
+              <div key={index} className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+                <span className="truncate text-sm">{file.name}</span>
+                <Button variant="outline" size="sm" type="button" onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))}>
+                  Remover
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       {canChooseSolicitante && (
         <div>

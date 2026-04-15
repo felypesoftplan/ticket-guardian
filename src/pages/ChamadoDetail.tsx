@@ -37,7 +37,8 @@ export default function ChamadoDetail() {
         prioridade:prioridades(nome, cor, prazo_dias_uteis),
         status:statuses(nome, cor, final, inicial),
         solicitante:users!chamados_solicitante_id_fkey(name),
-        responsavel:users!chamados_responsavel_id_fkey(name)
+        responsavel:users!chamados_responsavel_id_fkey(name),
+        anexos:chamado_anexos(id, nome_original, caminho, created_at)
       `)
       .eq('id', id)
       .single();
@@ -214,6 +215,35 @@ export default function ChamadoDetail() {
             <h3 className="font-semibold mb-2">Descrição</h3>
             <p className="text-sm whitespace-pre-wrap">{chamado.descricao}</p>
           </div>
+
+          {chamado.anexos && chamado.anexos.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-2">Anexos</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {chamado.anexos.map((anexo: any) => {
+                  const publicUrl = supabase.storage.from('chamados').getPublicUrl(anexo.caminho).data?.publicUrl;
+                  return (
+                    <a
+                      key={anexo.id}
+                      href={publicUrl || '#'}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg border border-input overflow-hidden hover:shadow-lg transition-shadow"
+                    >
+                      {publicUrl?.match(/\.(png|jpe?g|gif|webp|bmp)$/i) ? (
+                        <img src={publicUrl} alt={anexo.nome_original} className="h-40 w-full object-cover" />
+                      ) : (
+                        <div className="flex h-40 items-center justify-center bg-muted text-sm text-muted-foreground">
+                          {anexo.nome_original}
+                        </div>
+                      )}
+                      <div className="p-3 text-sm font-medium">{anexo.nome_original}</div>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <Separator />
 
