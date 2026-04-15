@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { StatusBadge } from '@/components/StatusBadge';
 import { PrioridadeBadge } from '@/components/PrioridadeBadge';
 import { SlaBadge } from '@/components/SlaBadge';
@@ -172,6 +173,8 @@ export default function ChamadoDetail() {
     if (!chamado || !user) return false;
     return user.id === chamado.solicitante_id || user.id === chamado.responsavel_id;
   };
+
+  const sortedHistorico = [...historico].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
   const handleAttachmentChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files ? Array.from(event.target.files) : [];
@@ -388,17 +391,48 @@ export default function ChamadoDetail() {
           {/* Histórico */}
           <div>
             <h3 className="font-semibold mb-4">Histórico</h3>
-            <div className="space-y-3">
-              {historico.map(h => (
-                <div key={h.id} className="flex gap-3 text-sm border-l-2 border-primary/30 pl-4 py-1">
-                  <div className="flex-1">
-                    <span className="font-medium">{h.usuario?.name}</span>
-                    <span className="text-muted-foreground ml-2">{new Date(h.created_at).toLocaleString('pt-BR')}</span>
-                    <p className="mt-1">{h.descricao}</p>
+            <div className="space-y-4">
+              {sortedHistorico.map((h, index) => {
+                const initials = h.usuario?.name
+                  ? h.usuario.name
+                      .split(' ')
+                      .map((part: string) => part[0])
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase()
+                  : 'U';
+                const stepNumber = index + 1;
+                const actionLabel = h.acao === 'observacao' ? 'Observação'
+                  : h.acao === 'assumido' ? 'Assumido'
+                  : h.acao === 'status_alterado' ? 'Mudança de Status'
+                  : h.acao === 'anexo' ? 'Anexo'
+                  : 'Registro';
+
+                return (
+                  <div key={h.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-sm">{initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{h.usuario?.name || 'Usuário'}</span>
+                            <span className="rounded-full border border-input px-2 py-0.5 text-[11px] uppercase text-muted-foreground">{actionLabel}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>Passo {stepNumber}</span>
+                            <span>•</span>
+                            <span>{new Date(h.created_at).toLocaleString('pt-BR')}</span>
+                          </div>
+                        </div>
+                        <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground">{h.descricao || 'Sem descrição adicional.'}</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {historico.length === 0 && (
+                );
+              })}
+              {sortedHistorico.length === 0 && (
                 <p className="text-muted-foreground text-sm">Nenhum registro</p>
               )}
             </div>
