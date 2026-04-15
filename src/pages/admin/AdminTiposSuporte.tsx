@@ -102,7 +102,19 @@ export default function AdminTiposSuporte() {
       supabase.from('classe_suportes').select('*').eq('ativo', true),
       supabase.from('setores').select('*').eq('ativo', true),
     ]);
-    setItems(tiposRes.data || []);
+
+    // Populate _setorIds for each tipo_suporte
+    const tiposWithSetores = await Promise.all(
+      (tiposRes.data || []).map(async (tipo) => {
+        const { data } = await supabase.from('setor_tipo_suporte').select('setor_id').eq('tipo_suporte_id', tipo.id);
+        return {
+          ...tipo,
+          _setorIds: (data || []).map((d: any) => d.setor_id)
+        };
+      })
+    );
+
+    setItems(tiposWithSetores);
     setClasses(classesRes.data || []);
     setSetores(setoresRes.data || []);
     setLoading(false);
@@ -189,11 +201,6 @@ export default function AdminTiposSuporte() {
     return matchesNome && matchesClasse && matchesSetor;
   });
 
-  const enrichedItems = filteredItems.map(item => ({
-    ...item,
-    _setorIds: items.find(i => i.id === item.id)?._setorIds || [],
-  }));
-
   if (loading) return <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
   return (
@@ -262,9 +269,9 @@ export default function AdminTiposSuporte() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {enrichedItems.length === 0 ? (
+            {filteredItems.length === 0 ? (
               <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum tipo de suporte encontrado</TableCell></TableRow>
-            ) : enrichedItems.map(item => (
+            ) : filteredItems.map(item => (
               <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.nome}</TableCell>
                 <TableCell>{getClasseNome(item.classe_suporte_id)}</TableCell>
