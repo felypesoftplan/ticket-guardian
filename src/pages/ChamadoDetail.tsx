@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { StatusBadge } from '@/components/StatusBadge';
 import { PrioridadeBadge } from '@/components/PrioridadeBadge';
@@ -25,6 +26,7 @@ export default function ChamadoDetail() {
   const [statuses, setStatuses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [observacao, setObservacao] = useState('');
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchChamado = async () => {
@@ -166,6 +168,61 @@ export default function ChamadoDetail() {
     }
   };
 
+  const canUploadAttachments = () => {
+    if (!chamado || !user) return false;
+    return user.id === chamado.solicitante_id || user.id === chamado.responsavel_id;
+  };
+
+  const handleAttachmentChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    setAttachmentFiles(files);
+  };
+
+  const handleUploadAttachments = async () => {
+    if (!attachmentFiles.length || !chamado) return;
+    setActionLoading(true);
+    try {
+      const uploadPromises = attachmentFiles.map(async file => {
+        const safeFileName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+        const filePath = `chamados/${id}/${Date.now()}-${safeFileName}`;
+        const { error: uploadError } = await supabase.storage.from('chamados').upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+        if (uploadError) throw uploadError;
+        const { error: insertError } = await supabase.from('chamado_anexos').insert({
+          chamado_id: id!,
+          nome_original: file.name,
+          caminho: filePath,
+        });
+        if (insertError) throw insertError;
+      });
+
+      await Promise.all(uploadPromises);
+
+      const descricao = attachmentFiles.length === 1
+        ? `Anexo adicionado: ${attachmentFiles[0].name}`
+        : `Anexos adicionados: ${attachmentFiles.length}`;
+
+      await supabase.from('historico_chamados').insert({
+        chamado_id: id!,
+        user_id: user!.id,
+        acao: 'anexo',
+        descricao,
+      });
+
+      await notifyChamadoUpdate(id!, user!.id, descricao, chamado.solicitante_id, chamado.responsavel_id);
+      setAttachmentFiles([]);
+      toast({ title: 'Anexos enviados com sucesso!' });
+      await fetchChamado();
+      await fetchHistorico();
+    } catch (err: any) {
+      toast({ title: 'Erro ao enviar anexos', description: err.message, variant: 'destructive' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   if (!chamado) return <div className="text-center p-8 text-muted-foreground">Chamado não encontrado</div>;
 
@@ -241,6 +298,45 @@ export default function ChamadoDetail() {
                     </a>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {canUploadAttachments() && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold mb-2">Adicionar arquivos</h3>
+                <Input type="file" multiple onChange={handleAttachmentChange} />
+              </div>
+              {attachmentFiles.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm text-muted-foreground">Arquivos selecionados:</div>
+                  <div className="space-y-2">
+                    {attachmentFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between rounded-md border border-input px-3 py-2 text-sm">
+                        <span className="truncate">{file.name}</span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAttachmentFiles(prev => prev.filter((_, i) => i !== index))}
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  onClick={handleUploadAttachments}
+                  disabled={attachmentFiles.length === 0 || actionLoading}
+                >
+                  {actionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Enviar arquivos
+                </Button>
               </div>
             </div>
           )}
