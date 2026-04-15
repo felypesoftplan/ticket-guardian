@@ -389,6 +389,18 @@ export type Database = {
           nome: string
           prazo_dias_uteis: number
           updated_at: string | null
+          campo_nome_completo?: string | null
+          campo_cpf?: string | null
+          campo_usuario_sei?: string | null
+          campo_email_expresso?: string | null
+          campo_telefone?: string | null
+          campo_modulos?: string | null
+          campo_nome_rt?: string | null
+          campo_numero_art?: string | null
+          campo_cpf_rt?: string | null
+          campo_numero_registro?: string | null
+          campo_email_corporativo?: string | null
+          campo_cnpj_empresa?: string | null
         }
         Insert: {
           ativo?: boolean | null
@@ -398,6 +410,18 @@ export type Database = {
           nome: string
           prazo_dias_uteis?: number
           updated_at?: string | null
+          campo_nome_completo?: string | null
+          campo_cpf?: string | null
+          campo_usuario_sei?: string | null
+          campo_email_expresso?: string | null
+          campo_telefone?: string | null
+          campo_modulos?: string | null
+          campo_nome_rt?: string | null
+          campo_numero_art?: string | null
+          campo_cpf_rt?: string | null
+          campo_numero_registro?: string | null
+          campo_email_corporativo?: string | null
+          campo_cnpj_empresa?: string | null
         }
         Update: {
           ativo?: boolean | null
@@ -407,6 +431,18 @@ export type Database = {
           nome?: string
           prazo_dias_uteis?: number
           updated_at?: string | null
+          campo_nome_completo?: string | null
+          campo_cpf?: string | null
+          campo_usuario_sei?: string | null
+          campo_email_expresso?: string | null
+          campo_telefone?: string | null
+          campo_modulos?: string | null
+          campo_nome_rt?: string | null
+          campo_numero_art?: string | null
+          campo_cpf_rt?: string | null
+          campo_numero_registro?: string | null
+          campo_email_corporativo?: string | null
+          campo_cnpj_empresa?: string | null
         }
         Relationships: [
           {
