@@ -218,6 +218,33 @@ export type Database = {
           },
         ]
       }
+      notificacoes: {
+        Row: {
+          chamado_id: string | null
+          created_at: string
+          id: string
+          lida: boolean
+          mensagem: string
+          user_id: string
+        }
+        Insert: {
+          chamado_id?: string | null
+          created_at?: string
+          id?: string
+          lida?: boolean
+          mensagem: string
+          user_id: string
+        }
+        Update: {
+          chamado_id?: string | null
+          created_at?: string
+          id?: string
+          lida?: boolean
+          mensagem?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       prioridades: {
         Row: {
           ativo: boolean | null
