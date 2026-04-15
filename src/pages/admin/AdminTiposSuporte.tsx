@@ -23,9 +23,10 @@ function TipoSuporteForm({ item, setItem, classes, setores, setoresRelacionados,
       <div><Label>Prazo (dias úteis)</Label><Input type="number" min={1} max={365} value={item?.prazo_dias_uteis || 5} onChange={e => setItem({ ...item, prazo_dias_uteis: parseInt(e.target.value) })} /></div>
       <div>
         <Label>Classe de Suporte</Label>
-        <Select value={item?.classe_suporte_id || ''} onValueChange={v => setItem({ ...item, classe_suporte_id: v })}>
+        <Select value={item?.classe_suporte_id || '-'} onValueChange={v => setItem({ ...item, classe_suporte_id: v === '-' ? '' : v })}>
           <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
           <SelectContent>
+            {item?.classe_suporte_id ? null : <SelectItem value="-">Selecione</SelectItem>}
             {classes.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
           </SelectContent>
         </Select>
@@ -223,20 +224,20 @@ export default function AdminTiposSuporte() {
           </div>
           <div>
             <Label>Classe de Suporte</Label>
-            <Select value={filterClasse} onValueChange={setFilterClasse}>
+            <Select value={filterClasse || '-'} onValueChange={v => setFilterClasse(v === '-' ? '' : v)}>
               <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="-">Todas</SelectItem>
                 {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div>
             <Label>Setor</Label>
-            <Select value={filterSetor} onValueChange={setFilterSetor}>
+            <Select value={filterSetor || '-'} onValueChange={v => setFilterSetor(v === '-' ? '' : v)}>
               <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="-">Todos</SelectItem>
                 {setores.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
               </SelectContent>
             </Select>
