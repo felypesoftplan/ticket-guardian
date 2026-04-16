@@ -254,6 +254,7 @@ export default function NovoChamado() {
         selectedTipo?.prazo_dias_uteis || 5
       );
 
+      const actualSolicitanteId = solicitanteId || user!.id;
       const { data: chamado, error } = await supabase
         .from('chamados')
         .insert({
@@ -263,10 +264,11 @@ export default function NovoChamado() {
           tipo_suporte_id: tipoSuporteId,
           prioridade_id: prioridadeId,
           status_id: statusInicial.id,
-          solicitante_id: solicitanteId || user!.id,
+          solicitante_id: actualSolicitanteId,
+          criado_por_id: user!.id,
           sla_vencimento: slaVencimento.toISOString(),
           modulo_sider: isSider ? moduloSider : null,
-        })
+        } as any)
         .select()
         .single();
 
@@ -281,6 +283,22 @@ export default function NovoChamado() {
       });
 
       await uploadAttachments(chamado.id);
+
+      // Notify admins, suportes of the setor, and the solicitante
+      try {
+        await supabase.functions.invoke('notify-chamado-update', {
+          body: {
+            chamado_id: chamado.id,
+            mensagem: `Novo chamado criado: ${finalTitulo}`,
+            notify_admins_and_suporte: true,
+            setor_id: setorId,
+            actor_id: user!.id,
+            solicitante_id: actualSolicitanteId,
+          },
+        });
+      } catch (emailErr) {
+        console.error('Falha ao enviar notificação:', emailErr);
+      }
 
       toast({ title: 'Chamado criado com sucesso!' });
       navigate(`/chamados/${chamado.id}`);
