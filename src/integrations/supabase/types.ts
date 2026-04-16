@@ -53,6 +53,7 @@ export type Database = {
         Row: {
           assumido_em: string | null
           created_at: string | null
+          criado_por_id: string | null
           descricao: string
           finalizado_em: string | null
           id: string
@@ -70,6 +71,7 @@ export type Database = {
         Insert: {
           assumido_em?: string | null
           created_at?: string | null
+          criado_por_id?: string | null
           descricao: string
           finalizado_em?: string | null
           id?: string
@@ -87,6 +89,7 @@ export type Database = {
         Update: {
           assumido_em?: string | null
           created_at?: string | null
+          criado_por_id?: string | null
           descricao?: string
           finalizado_em?: string | null
           id?: string
@@ -102,6 +105,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "chamados_criado_por_id_fkey"
+            columns: ["criado_por_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chamados_prioridade_id_fkey"
             columns: ["prioridade_id"]
