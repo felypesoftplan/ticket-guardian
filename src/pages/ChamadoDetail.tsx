@@ -58,26 +58,26 @@ export default function ChamadoDetail() {
   };
 
   useEffect(() => {
-    Promise.all([
-      fetchChamado(),
-      fetchHistorico(),
-      supabase.from('statuses').select('*').order('ordem'),
-    ]).then(([chamadoRes, _, statusRes]) => {
-      // Check setor access control
-      const chamadoData = chamadoRes?.data;
-      const userSetorId = profile?.setor_id;
-      const isAdmin = profile?.role === 'admin' || profile?.role === 'gestor';
-      
-      if (chamadoData && userSetorId && !isAdmin && chamadoData.setor_id !== userSetorId) {
-        toast({ title: 'Acesso negado', description: 'Você não tem permissão para acessar este chamado', variant: 'destructive' });
-        navigate('/chamados');
-        return;
-      }
-      
+    const load = async () => {
+      await Promise.all([fetchChamado(), fetchHistorico()]);
+      const statusRes = await supabase.from('statuses').select('*').order('ordem');
       setStatuses(statusRes.data || []);
       setLoading(false);
-    });
+    };
+    load();
   }, [id]);
+
+  // Fetch criado_por name if different from solicitante
+  const [criadoPorName, setCriadoPorName] = useState<string | null>(null);
+  useEffect(() => {
+    if (!chamado?.criado_por_id || chamado.criado_por_id === chamado.solicitante_id) {
+      setCriadoPorName(null);
+      return;
+    }
+    supabase.from('users').select('name').eq('id', chamado.criado_por_id).single().then(({ data }) => {
+      setCriadoPorName(data?.name || null);
+    });
+  }, [chamado?.criado_por_id, chamado?.solicitante_id]);
 
   const getStatusByName = (nome: string) => statuses.find(s => s.nome === nome);
 
@@ -105,7 +105,7 @@ export default function ChamadoDetail() {
       const sla = calculateSLA(
         new Date(),
         chamado.prioridade?.prazo_dias_uteis || 5,
-        5 // default if not available
+        5
       );
 
       await supabase.from('chamados').update({
@@ -270,6 +270,9 @@ export default function ChamadoDetail() {
             <div><span className="text-muted-foreground">Setor:</span> {chamado.setor?.nome}</div>
             <div><span className="text-muted-foreground">Tipo de Suporte:</span> {chamado.tipo_suporte?.nome}</div>
             <div><span className="text-muted-foreground">Solicitante:</span> {chamado.solicitante?.name}</div>
+            {criadoPorName && (
+              <div><span className="text-muted-foreground">Criado por:</span> {criadoPorName}</div>
+            )}
             <div><span className="text-muted-foreground">Responsável:</span> {chamado.responsavel?.name || 'Não atribuído'}</div>
             <div><span className="text-muted-foreground">Criado em:</span> {new Date(chamado.created_at).toLocaleString('pt-BR')}</div>
             {chamado.sla_vencimento && (

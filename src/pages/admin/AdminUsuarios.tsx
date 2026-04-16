@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { createUser, deleteUser } from '@/lib/user-api';
@@ -29,6 +29,54 @@ const roleLabels: Record<AppRole, string> = {
   gestor: 'Gestor',
   usuario: 'Usuário',
 };
+
+// ---- Extracted components (stable references, no re-render on parent state change) ----
+
+function SetorCheckboxes({ selected, onChange, setores }: { selected: string[]; onChange: (v: string[]) => void; setores: Setor[] }) {
+  return (
+    <div className="space-y-2 mt-1">
+      {setores.map(s => (
+        <div key={s.id} className="flex items-center gap-2">
+          <Checkbox checked={selected.includes(s.id)} onCheckedChange={checked => onChange(checked ? [...selected, s.id] : selected.filter(id => id !== s.id))} />
+          <span className="text-sm">{s.nome}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function UserFormFields({ form, setForm, isCreate, selectedSetores, setSelectedSetores, setores }: {
+  form: any; setForm: (v: any) => void; isCreate: boolean;
+  selectedSetores: string[]; setSelectedSetores: (v: string[]) => void; setores: Setor[];
+}) {
+  return (
+    <div className="space-y-3">
+      <div><Label>Nome</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+      <div><Label>Usuário</Label><Input value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} /></div>
+      <div><Label>Email</Label><Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
+      {isCreate && <div><Label>Senha</Label><Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} /></div>}
+      <div>
+        <Label>Perfil</Label>
+        <Select value={form.role} onValueChange={(v: AppRole) => setForm({ ...form, role: v })}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {Object.entries(roleLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label>Setores</Label>
+        <SetorCheckboxes selected={selectedSetores} onChange={setSelectedSetores} setores={setores} />
+      </div>
+      <div className="flex items-center gap-2">
+        <Switch checked={form.ativo} onCheckedChange={v => setForm({ ...form, ativo: v })} />
+        <Label>Ativo</Label>
+      </div>
+    </div>
+  );
+}
+
+// ---- Main component ----
 
 export default function AdminUsuarios() {
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -137,43 +185,6 @@ export default function AdminUsuarios() {
     return ids.map(id => setores.find(s => s.id === id)?.nome).filter(Boolean).join(', ') || '—';
   };
 
-  const SetorCheckboxes = ({ selected, onChange }: { selected: string[]; onChange: (v: string[]) => void }) => (
-    <div className="space-y-2 mt-1">
-      {setores.map(s => (
-        <div key={s.id} className="flex items-center gap-2">
-          <Checkbox checked={selected.includes(s.id)} onCheckedChange={checked => onChange(checked ? [...selected, s.id] : selected.filter(id => id !== s.id))} />
-          <span className="text-sm">{s.nome}</span>
-        </div>
-      ))}
-    </div>
-  );
-
-  const UserFormFields = ({ form, setForm, isCreate, selectedSetores, setSelectedSetores }: any) => (
-    <div className="space-y-3">
-      <div><Label>Nome</Label><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
-      <div><Label>Usuário</Label><Input value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} /></div>
-      <div><Label>Email</Label><Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
-      {isCreate && <div><Label>Senha</Label><Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} /></div>}
-      <div>
-        <Label>Perfil</Label>
-        <Select value={form.role} onValueChange={(v: AppRole) => setForm({ ...form, role: v })}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {Object.entries(roleLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <Label>Setores</Label>
-        <SetorCheckboxes selected={selectedSetores} onChange={setSelectedSetores} />
-      </div>
-      <div className="flex items-center gap-2">
-        <Switch checked={form.ativo} onCheckedChange={v => setForm({ ...form, ativo: v })} />
-        <Label>Ativo</Label>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -185,7 +196,7 @@ export default function AdminUsuarios() {
           <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Novo Usuário</DialogTitle></DialogHeader>
             <form onSubmit={e => { e.preventDefault(); handleCreateUser(); }} className="space-y-4">
-              <UserFormFields form={newUserForm} setForm={setNewUserForm} isCreate selectedSetores={newSetores} setSelectedSetores={setNewSetores} />
+              <UserFormFields form={newUserForm} setForm={setNewUserForm} isCreate selectedSetores={newSetores} setSelectedSetores={setNewSetores} setores={setores} />
               <div className="flex gap-2 justify-end mt-4">
                 <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
                 <Button type="submit" disabled={saving}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Criar</Button>
@@ -243,7 +254,7 @@ export default function AdminUsuarios() {
           <DialogHeader><DialogTitle>Editar Usuário</DialogTitle></DialogHeader>
           {editingUser && (
             <>
-              <UserFormFields form={editingUser} setForm={setEditingUser} isCreate={false} selectedSetores={editSetores} setSelectedSetores={setEditSetores} />
+              <UserFormFields form={editingUser} setForm={setEditingUser} isCreate={false} selectedSetores={editSetores} setSelectedSetores={setEditSetores} setores={setores} />
               <div className="flex gap-2 justify-end mt-4">
                 <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
                 <Button type="button" onClick={handleEditSave} disabled={saving}>{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Salvar</Button>
