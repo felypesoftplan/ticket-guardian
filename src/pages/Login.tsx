@@ -83,6 +83,23 @@ export default function Login() {
               Entrar
             </Button>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou</span></div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled
+            title="Em breve: autenticação via Active Directory"
+          >
+            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            Entrar com LDAP / Active Directory
+          </Button>
+          <p className="text-xs text-center text-muted-foreground mt-2">Autenticação LDAP em breve. Entre em contato com o administrador para configurar.</p>
         </CardContent>
       </Card>
     </div>

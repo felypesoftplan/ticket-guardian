@@ -53,6 +53,7 @@ export type Database = {
         Row: {
           assumido_em: string | null
           created_at: string | null
+          criado_por_id: string | null
           descricao: string
           finalizado_em: string | null
           id: string
@@ -70,6 +71,7 @@ export type Database = {
         Insert: {
           assumido_em?: string | null
           created_at?: string | null
+          criado_por_id?: string | null
           descricao: string
           finalizado_em?: string | null
           id?: string
@@ -87,6 +89,7 @@ export type Database = {
         Update: {
           assumido_em?: string | null
           created_at?: string | null
+          criado_por_id?: string | null
           descricao?: string
           finalizado_em?: string | null
           id?: string
@@ -102,6 +105,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "chamados_criado_por_id_fkey"
+            columns: ["criado_por_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chamados_prioridade_id_fkey"
             columns: ["prioridade_id"]
@@ -389,18 +399,6 @@ export type Database = {
           nome: string
           prazo_dias_uteis: number
           updated_at: string | null
-          campo_nome_completo?: string | null
-          campo_cpf?: string | null
-          campo_usuario_sei?: string | null
-          campo_email_expresso?: string | null
-          campo_telefone?: string | null
-          campo_modulos?: string | null
-          campo_nome_rt?: string | null
-          campo_numero_art?: string | null
-          campo_cpf_rt?: string | null
-          campo_numero_registro?: string | null
-          campo_email_corporativo?: string | null
-          campo_cnpj_empresa?: string | null
         }
         Insert: {
           ativo?: boolean | null
@@ -410,18 +408,6 @@ export type Database = {
           nome: string
           prazo_dias_uteis?: number
           updated_at?: string | null
-          campo_nome_completo?: string | null
-          campo_cpf?: string | null
-          campo_usuario_sei?: string | null
-          campo_email_expresso?: string | null
-          campo_telefone?: string | null
-          campo_modulos?: string | null
-          campo_nome_rt?: string | null
-          campo_numero_art?: string | null
-          campo_cpf_rt?: string | null
-          campo_numero_registro?: string | null
-          campo_email_corporativo?: string | null
-          campo_cnpj_empresa?: string | null
         }
         Update: {
           ativo?: boolean | null
@@ -431,18 +417,6 @@ export type Database = {
           nome?: string
           prazo_dias_uteis?: number
           updated_at?: string | null
-          campo_nome_completo?: string | null
-          campo_cpf?: string | null
-          campo_usuario_sei?: string | null
-          campo_email_expresso?: string | null
-          campo_telefone?: string | null
-          campo_modulos?: string | null
-          campo_nome_rt?: string | null
-          campo_numero_art?: string | null
-          campo_cpf_rt?: string | null
-          campo_numero_registro?: string | null
-          campo_email_corporativo?: string | null
-          campo_cnpj_empresa?: string | null
         }
         Relationships: [
           {

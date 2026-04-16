@@ -1,9 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Creates in-app notifications for relevant users when a chamado is updated.
+ * Creates in-app notifications and sends email for chamado updates.
  * Notifies the solicitante and responsavel (if any), excluding the actor.
- * Also attempts to send an email summary of the update using a server-side function.
  */
 export async function notifyChamadoUpdate(
   chamadoId: string,
@@ -12,6 +11,7 @@ export async function notifyChamadoUpdate(
   solicitanteId: string,
   responsavelId?: string | null
 ) {
+  // Create in-app notifications for solicitante and responsavel
   const targets = new Set<string>();
   if (solicitanteId && solicitanteId !== actorId) targets.add(solicitanteId);
   if (responsavelId && responsavelId !== actorId) targets.add(responsavelId);
@@ -26,13 +26,14 @@ export async function notifyChamadoUpdate(
     await (supabase.from('notificacoes' as any) as any).insert(inserts);
   }
 
-  if (targets.size === 0) return;
-
+  // Send email via edge function (also notifies admins/suporte of the setor)
   try {
     await supabase.functions.invoke('notify-chamado-update', {
       body: {
         chamado_id: chamadoId,
-        user_ids: Array.from(targets),
+        actor_id: actorId,
+        solicitante_id: solicitanteId,
+        responsavel_id: responsavelId,
         mensagem,
       },
     });
