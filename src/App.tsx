@@ -18,6 +18,7 @@ import AdminStatus from "./pages/admin/AdminStatus";
 import AdminTiposSuporte from "./pages/admin/AdminTiposSuporte";
 import AdminClassesSuporte from "./pages/admin/AdminClassesSuporte";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -59,6 +60,7 @@ const App = () => (
                 <Route path="/chamados/novo" element={<NovoChamado />} />
                 <Route path="/chamados/:id" element={<ChamadoDetail />} />
                 <Route path="/kanban" element={<KanbanBoard />} />
+                <Route path="/perfil" element={<Profile />} />
                 <Route path="/admin/setores" element={<AdminRoute><AdminSetores /></AdminRoute>} />
                 <Route path="/admin/prioridades" element={<AdminRoute><AdminPrioridades /></AdminRoute>} />
                 <Route path="/admin/status" element={<AdminRoute><AdminStatus /></AdminRoute>} />

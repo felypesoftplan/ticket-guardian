@@ -10,6 +10,8 @@ interface UserProfile {
   role: 'admin' | 'suporte' | 'gestor' | 'usuario';
   setor_id: string;
   ativo: boolean;
+  telefone?: string | null;
+  avatar_url?: string | null;
 }
 
 interface AuthContextType {
