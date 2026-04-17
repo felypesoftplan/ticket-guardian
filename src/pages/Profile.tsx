@@ -6,15 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Upload, Trash2, KeyRound, User as UserIcon } from 'lucide-react';
 import { z } from 'zod';
-
-interface Setor {
-  id: string;
-  nome: string;
-}
 
 const profileSchema = z.object({
   name: z.string().trim().min(2, 'Nome muito curto').max(100, 'Máximo 100 caracteres'),
