@@ -6,15 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Upload, Trash2, KeyRound, User as UserIcon } from 'lucide-react';
 import { z } from 'zod';
-
-interface Setor {
-  id: string;
-  nome: string;
-}
 
 const profileSchema = z.object({
   name: z.string().trim().min(2, 'Nome muito curto').max(100, 'Máximo 100 caracteres'),
@@ -22,7 +16,7 @@ const profileSchema = z.object({
     .regex(/^[a-zA-Z0-9_.-]+$/, 'Use apenas letras, números, . _ -'),
   email: z.string().trim().email('E-mail inválido').max(255),
   telefone: z.string().trim().max(30).optional().or(z.literal('')),
-  setor_id: z.string().uuid().nullable().optional(),
+  setor_texto: z.string().trim().max(120, 'Máximo 120 caracteres').optional().or(z.literal('')),
 });
 
 const passwordSchema = z.object({
@@ -38,7 +32,6 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [savingPwd, setSavingPwd] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [setores, setSetores] = useState<Setor[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
@@ -46,16 +39,10 @@ export default function Profile() {
     username: '',
     email: '',
     telefone: '',
-    setor_id: '' as string,
+    setor_texto: '',
     avatar_url: '' as string | null,
   });
   const [pwd, setPwd] = useState({ password: '', confirm: '' });
-
-  useEffect(() => {
-    supabase.from('setores').select('id,nome').eq('ativo', true).order('nome').then(({ data }) => {
-      if (data) setSetores(data);
-    });
-  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -66,7 +53,7 @@ export default function Profile() {
           username: data.username ?? '',
           email: data.email ?? '',
           telefone: (data as any).telefone ?? '',
-          setor_id: data.setor_id ?? '',
+          setor_texto: (data as any).setor_texto ?? '',
           avatar_url: (data as any).avatar_url ?? null,
         });
       }
@@ -78,10 +65,7 @@ export default function Profile() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    const parsed = profileSchema.safeParse({
-      ...form,
-      setor_id: form.setor_id || null,
-    });
+    const parsed = profileSchema.safeParse(form);
     if (!parsed.success) {
       toast({ title: 'Erro de validação', description: parsed.error.issues[0].message, variant: 'destructive' });
       return;
@@ -98,7 +82,7 @@ export default function Profile() {
         username: parsed.data.username,
         email: parsed.data.email,
         telefone: parsed.data.telefone || null,
-        setor_id: parsed.data.setor_id || null,
+        setor_texto: parsed.data.setor_texto || null,
       } as any).eq('id', user.id);
       if (error) throw error;
       toast({ title: 'Perfil atualizado', description: 'Suas informações foram salvas.' });
@@ -239,15 +223,15 @@ export default function Profile() {
               <Label htmlFor="telefone">Telefone</Label>
               <Input id="telefone" value={form.telefone} onChange={e => setForm({ ...form, telefone: e.target.value })} placeholder="(81) 99999-0000" maxLength={30} />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="setor">Setor (DER)</Label>
-              <Select value={form.setor_id || 'none'} onValueChange={v => setForm({ ...form, setor_id: v === 'none' ? '' : v })}>
-                <SelectTrigger id="setor"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
-                  {setores.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="setor">Setor</Label>
+              <Input
+                id="setor"
+                value={form.setor_texto}
+                onChange={e => setForm({ ...form, setor_texto: e.target.value })}
+                placeholder="Ex: Diretoria de Operações"
+                maxLength={120}
+              />
             </div>
             <div className="sm:col-span-2 flex justify-end">
               <Button type="submit" disabled={loading}>
