@@ -2,7 +2,8 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Moon, Sun } from 'lucide-react';
+import { LogOut, Moon, Sun, User as UserIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { NotificationBell } from '@/components/NotificationBell';
 import {
   DropdownMenu,
@@ -12,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const roleLabels: Record<string, string> = {
   admin: 'Administrador',
@@ -49,6 +50,7 @@ export function AppHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="gap-2 px-2">
               <Avatar className="h-7 w-7">
+                {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={profile.name} />}
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
               </Avatar>
               <div className="hidden sm:flex flex-col items-start">
@@ -63,9 +65,11 @@ export function AppHeader() {
               <p className="text-xs text-muted-foreground">{roleLabels[profile?.role || 'usuario']}</p>
             </div>
             <DropdownMenuSeparator className="sm:hidden" />
-            <DropdownMenuItem className="cursor-default">
-              <span className="text-sm font-medium">{profile?.name}</span>
-              <span className="text-xs text-muted-foreground">{roleLabels[profile?.role || 'usuario']}</span>
+            <DropdownMenuItem asChild>
+              <Link to="/perfil">
+                <UserIcon className="mr-2 h-4 w-4" />
+                Meu Perfil
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
@@ -74,11 +78,6 @@ export function AppHeader() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        <Button variant="ghost" size="sm" onClick={signOut} title="Sair">
-          <LogOut className="h-4 w-4" />
-          <span className="hidden sm:inline">Sair</span>
-        </Button>
       </div>
     </header>
   );

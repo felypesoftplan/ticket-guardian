@@ -478,34 +478,40 @@ export type Database = {
       users: {
         Row: {
           ativo: boolean | null
+          avatar_url: string | null
           created_at: string | null
           email: string
           id: string
           name: string
           role: Database["public"]["Enums"]["app_role"]
           setor_id: string | null
+          telefone: string | null
           updated_at: string | null
           username: string
         }
         Insert: {
           ativo?: boolean | null
+          avatar_url?: string | null
           created_at?: string | null
           email: string
           id: string
           name: string
           role?: Database["public"]["Enums"]["app_role"]
           setor_id?: string | null
+          telefone?: string | null
           updated_at?: string | null
           username: string
         }
         Update: {
           ativo?: boolean | null
+          avatar_url?: string | null
           created_at?: string | null
           email?: string
           id?: string
           name?: string
           role?: Database["public"]["Enums"]["app_role"]
           setor_id?: string | null
+          telefone?: string | null
           updated_at?: string | null
           username?: string
         }
